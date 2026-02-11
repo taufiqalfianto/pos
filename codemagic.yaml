@@ -6,7 +6,6 @@ workflows:
       flutter: stable
       groups:
         - SHOREBIRD_TOKENS
-        - FIREBASE_TOKEN
     scripts:
       - name: Install Shorebird & Build Android Release
         script: |
