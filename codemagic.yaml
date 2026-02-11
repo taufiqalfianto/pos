@@ -48,5 +48,3 @@ workflows:
           # Atau ganti dengan nama grup yang sesuai, misal: "android-team"
           groups:
             - testers
-          # Karena Shorebird menghasilkan .aab, kita set tipe artifact ke app_bundle
-          artifact_type: 'app_bundle'
