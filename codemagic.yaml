@@ -1,32 +1,24 @@
-# workflows:
-#   android-shorebird-release:
-#     name: Android Shorebird Release & Firebase Dist
-#     max_build_duration: 60
-#     environment:
-#       flutter: stable
-#       groups:
-#         - shorebird_creds # Nama grup variabel kamu
-#         - firebase_creds  # Nama grup variabel kamu
-#     scripts:
-#       - name: Install Shorebird & Build Android Release
-#         script: |
-#           # 1. Install Shorebird
-#           curl --proto '=https' --tlsv1.2 -sSf https://shorebird.dev/install.sh | bash
+workflows:
+  android-shorebird-dist:
+    name: Android Shorebird Release to App Distribution
+    environment:
+      groups:
+        - shorebird_tokens # Grup variabel kamu
+      flutter: stable
+    scripts:
+      - name: Install Shorebird
+        script: |
+          curl --proto '=https' --tlsv1.2 -sSf https://shorebird.dev/install.sh | bash
+          echo "export PATH=\"$PATH:$HOME/.shorebird/bin\"" >> $GITHUB_PATH
+      
+      - name: Shorebird Release (Android)
+        script: |
+          # Perintah ini membuat release di Shorebird sekaligus build APK/AAB
+          shorebird release android -- --release-branch main
           
-#           # 2. Tambahkan ke PATH sementara
-#           export PATH="$HOME/.shorebird/bin:$PATH"
-          
-#           # 3. Verifikasi & Fetch dependencies
-#           flutter pub get
-          
-#           # 4. Build Release (Menghasilkan .aab)
-#           shorebird release android
-#     artifacts:
-#       - build/app/outputs/bundle/release/app-release.aab
-#     publishing:
-#       firebase:
-#         firebase_token: $FIREBASE_TOKEN
-#         android:
-#           app_id: $FIREBASE_APP_ID
-#           groups:
-#             - testers # Nama grup tester di Firebase kamu
+      - name: Upload to Firebase App Distribution
+        script: |
+          # Menggunakan Firebase CLI atau plugin bawaan Codemagic
+          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
+            --app $FIREBASE_APP_ID \
+            --groups "testers"
