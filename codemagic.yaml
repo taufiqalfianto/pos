@@ -47,4 +47,4 @@ workflows:
           # Pastikan kamu sudah membuat grup tester bernama "testers" di Firebase Console
           # Atau ganti dengan nama grup yang sesuai, misal: "android-team"
           groups:
-            - testers
+            - internal-testers
