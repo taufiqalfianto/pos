@@ -1,24 +1,52 @@
 workflows:
-  android-shorebird-dist:
-    name: Android Shorebird Release to App Distribution
+  android-shorebird-release:
+    name: Android Shorebird Release
+    max_build_duration: 60
     environment:
-      groups:
-        - shorebird_tokens # Grup variabel kamu
       flutter: stable
+      # BAGIAN INI SANGAT PENTING:
+      # Harus sama persis dengan nama grup di screenshot kamu (huruf kecil)
+      groups:
+        - shorebird
+        - firebase
     scripts:
-      - name: Install Shorebird
+      - name: Install Shorebird & Build Release
         script: |
-          curl --proto '=https' --tlsv1.2 -sSf https://shorebird.dev/install.sh | bash
-          echo "export PATH=\"$PATH:$HOME/.shorebird/bin\"" >> $GITHUB_PATH
-      
-      - name: Shorebird Release (Android)
-        script: |
-          # Perintah ini membuat release di Shorebird sekaligus build APK/AAB
-          shorebird release android -- --release-branch main
+          set -e # Hentikan script jika ada error
           
-      - name: Upload to Firebase App Distribution
-        script: |
-          # Menggunakan Firebase CLI atau plugin bawaan Codemagic
-          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
-            --app $FIREBASE_APP_ID \
-            --groups "testers"
+          # 1. Install Shorebird
+          echo "📥 Sedang menginstall Shorebird..."
+          curl --proto '=https' --tlsv1.2 -sSf https://shorebird.dev/install.sh | bash
+          
+          # 2. Tambahkan Shorebird ke PATH (Hanya berlaku di sesi script ini)
+          export PATH="$HOME/.shorebird/bin:$PATH"
+          
+          # 3. Verifikasi Instalasi
+          echo "✅ Shorebird terinstall:"
+          shorebird --version
+          
+          # 4. Setup Flutter Dependencies
+          echo "📦 Mengambil dependencies..."
+          flutter pub get
+          
+          # 5. Jalankan Shorebird Release
+          # Perintah ini akan membuild .aab dan mendaftarkannya ke console Shorebird
+          echo "🚀 Memulai Shorebird Release..."
+          shorebird release android --flutter-version=stable
+          
+    artifacts:
+      - build/app/outputs/bundle/release/app-release.aab
+      
+    publishing:
+      firebase:
+        # Menggunakan token dari grup "firebase"
+        firebase_token: $FIREBASE_TOKEN 
+        android:
+          # Menggunakan App ID dari grup "firebase"
+          app_id: $FIREBASE_APP_ID 
+          # Pastikan kamu sudah membuat grup tester bernama "testers" di Firebase Console
+          # Atau ganti dengan nama grup yang sesuai, misal: "android-team"
+          groups:
+            - testers
+          # Karena Shorebird menghasilkan .aab, kita set tipe artifact ke app_bundle
+          artifact_type: 'app_bundle'
