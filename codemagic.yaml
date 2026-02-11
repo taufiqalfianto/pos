@@ -1,0 +1,24 @@
+workflows:
+  android-shorebird-dist:
+    name: Android Shorebird Release to App Distribution
+    environment:
+      groups:
+        - shorebird_tokens # Grup variabel kamu
+      flutter: stable
+    scripts:
+      - name: Install Shorebird
+        script: |
+          curl --proto '=https' --tlsv1.2 -sSf https://shorebird.dev/install.sh | bash
+          echo "export PATH=\"$PATH:$HOME/.shorebird/bin\"" >> $GITHUB_PATH
+      
+      - name: Shorebird Release (Android)
+        script: |
+          # Perintah ini membuat release di Shorebird sekaligus build APK/AAB
+          shorebird release android -- --release-branch main
+          
+      - name: Upload to Firebase App Distribution
+        script: |
+          # Menggunakan Firebase CLI atau plugin bawaan Codemagic
+          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
+            --app $FIREBASE_APP_ID \
+            --groups "testers"
