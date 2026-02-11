@@ -12,27 +12,26 @@ workflows:
     scripts:
       - name: Install Shorebird & Build Release
         script: |
-          set -e # Hentikan script jika ada error
+          set -e
           
-          # 1. Install Shorebird
-          echo "📥 Sedang menginstall Shorebird dari Raw Source..."
+          # 1. Install Shorebird (Raw Source)
+          echo "📥 Sedang menginstall Shorebird..."
           curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash
           
-          # 2. Tambahkan Shorebird ke PATH (Hanya berlaku di sesi script ini)
+          # 2. Tambahkan Shorebird ke PATH
           export PATH="$HOME/.shorebird/bin:$PATH"
           
           # 3. Verifikasi Instalasi
-          echo "✅ Shorebird terinstall:"
           shorebird --version
           
           # 4. Setup Flutter Dependencies
           echo "📦 Mengambil dependencies..."
           flutter pub get
           
-          # 5. Jalankan Shorebird Release
-          # Perintah ini akan membuild .aab dan mendaftarkannya ke console Shorebird
+          # 5. Jalankan Shorebird Release (TANPA flag --flutter-version)
+          # Shorebird akan otomatis menggunakan Flutter yang ada di Codemagic
           echo "🚀 Memulai Shorebird Release..."
-          shorebird release android --flutter-version=stable
+          shorebird release android --verbose
           
     artifacts:
       - build/app/outputs/bundle/release/app-release.aab
