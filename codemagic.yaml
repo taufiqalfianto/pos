@@ -15,8 +15,8 @@ workflows:
           set -e # Hentikan script jika ada error
           
           # 1. Install Shorebird
-          echo "📥 Sedang menginstall Shorebird..."
-          curl --proto '=https' --tlsv1.2 -sSf https://shorebird.dev/install.sh | bash
+          echo "📥 Sedang menginstall Shorebird dari Raw Source..."
+          curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash
           
           # 2. Tambahkan Shorebird ke PATH (Hanya berlaku di sesi script ini)
           export PATH="$HOME/.shorebird/bin:$PATH"
