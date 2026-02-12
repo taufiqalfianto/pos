@@ -59,9 +59,12 @@ workflows:
     #       # Shorebird akan otomatis menggunakan Flutter yang ada di Codemagic
     #       echo "🚀 Memulai Shorebird Release..."
     #       shorebird release android --verbose
-          
+
     artifacts:
-      - build/app/outputs/bundle/release/app-release.apk
+      - app-release.apk
+          
+    # artifacts:
+    #   - build/app/outputs/bundle/release/app-release.apk
       
     publishing:
       firebase:
