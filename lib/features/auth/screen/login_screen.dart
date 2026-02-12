@@ -53,16 +53,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(20),
+                        width: 100,
+                        height: 100,
                         decoration: BoxDecoration(
+                          image: const DecorationImage(
+                            image: NetworkImage(
+                              'https://corenews.id/wp-content/uploads/2024/08/PosInd.jpg',
+                            ),
+                            fit: BoxFit.cover,
+                          ),
                           color: Colors.white,
                           shape: BoxShape.circle,
                           boxShadow: AppStyles.premiumShadow,
-                        ),
-                        child: const Icon(
-                          Icons.lock_person_rounded,
-                          size: 48,
-                          color: AppColors.primary,
                         ),
                       ),
                       const SizedBox(height: 24),
