@@ -10,31 +10,58 @@ workflows:
         - shorebird
         - firebase
     scripts:
-      - name: Install Shorebird & Build Release
+      - name: Install Shorebird, Build & Convert to APK
         script: |
           set -e
           
-          # 1. Install Shorebird (Raw Source)
-          echo "📥 Sedang menginstall Shorebird..."
+          # 1. Install Shorebird & Bundletool
+          echo "📥 Install Shorebird & Bundletool..."
           curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash
-          
-          # 2. Tambahkan Shorebird ke PATH
           export PATH="$HOME/.shorebird/bin:$PATH"
           
-          # 3. Verifikasi Instalasi
-          shorebird --version
+          # Download bundletool (alat pengubah aab ke apk)
+          wget https://github.com/google/bundletool/releases/download/1.15.6/bundletool-all-1.15.6.jar -O bundletool.jar
           
-          # 4. Setup Flutter Dependencies
-          echo "📦 Mengambil dependencies..."
-          flutter pub get
+          # 2. Build Release (Menghasilkan .aab)
+          echo "🚀 Shorebird Release..."
+          shorebird release android --flutter-version=stable
           
-          # 5. Jalankan Shorebird Release (TANPA flag --flutter-version)
-          # Shorebird akan otomatis menggunakan Flutter yang ada di Codemagic
-          echo "🚀 Memulai Shorebird Release..."
-          shorebird release android --verbose
+          # 3. Konversi AAB ke APK Universal (Agar bisa masuk Firebase tanpa Play Store)
+          echo "🔄 Mengubah AAB menjadi APK..."
+          java -jar bundletool.jar build-apks \
+            --bundle=build/app/outputs/bundle/release/app-release.aab \
+            --output=app.apks \
+            --mode=universal
+          
+          # Ekstrak file APK dari archive .apks
+          unzip -p app.apks universal.apk > app-release.apk
+
+    # scripts:
+    #   - name: Install Shorebird & Build Release
+    #     script: |
+    #       set -e
+          
+    #       # 1. Install Shorebird (Raw Source)
+    #       echo "📥 Sedang menginstall Shorebird..."
+    #       curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash
+          
+    #       # 2. Tambahkan Shorebird ke PATH
+    #       export PATH="$HOME/.shorebird/bin:$PATH"
+          
+    #       # 3. Verifikasi Instalasi
+    #       shorebird --version
+          
+    #       # 4. Setup Flutter Dependencies
+    #       echo "📦 Mengambil dependencies..."
+    #       flutter pub get
+          
+    #       # 5. Jalankan Shorebird Release (TANPA flag --flutter-version)
+    #       # Shorebird akan otomatis menggunakan Flutter yang ada di Codemagic
+    #       echo "🚀 Memulai Shorebird Release..."
+    #       shorebird release android --verbose
           
     artifacts:
-      - build/app/outputs/bundle/release/app-release.aab
+      - build/app/outputs/bundle/release/app-release.apk
       
     publishing:
       firebase:
