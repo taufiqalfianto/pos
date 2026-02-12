@@ -14,26 +14,35 @@ workflows:
         script: |
           set -e
           
-          # 1. Install Shorebird & Bundletool
-          echo "📥 Install Shorebird & Bundletool..."
+          # 1. Install Shorebird (Raw Source)
+          echo "📥 Install Shorebird..."
           curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash
+          
+          # Tambahkan ke PATH
           export PATH="$HOME/.shorebird/bin:$PATH"
           
-          # Download bundletool (alat pengubah aab ke apk)
+          # 2. Download bundletool (Alat pengubah AAB ke APK)
+          echo "📥 Install Bundletool..."
           wget https://github.com/google/bundletool/releases/download/1.15.6/bundletool-all-1.15.6.jar -O bundletool.jar
           
-          # 2. Build Release (Menghasilkan .aab)
+          # 3. Build Release (KOREKSI: Tanpa flag --flutter-version)
+          # Shorebird akan otomatis mendeteksi versi Flutter yang aktif di Codemagic
           echo "🚀 Shorebird Release..."
-          shorebird release android --flutter-version=stable
+          shorebird release android --verbose
           
-          # 3. Konversi AAB ke APK Universal (Agar bisa masuk Firebase tanpa Play Store)
+          # 4. Konversi AAB ke APK Universal
+          # Langkah ini wajib agar Firebase menerima aplikasi tanpa link Play Store
           echo "🔄 Mengubah AAB menjadi APK..."
           java -jar bundletool.jar build-apks \
             --bundle=build/app/outputs/bundle/release/app-release.aab \
             --output=app.apks \
-            --mode=universal
+            --mode=universal \
+            --ks=$CM_KEYSTORE_PATH \
+            --ks-pass=pass:$CM_KEYSTORE_PASSWORD \
+            --ks-key-alias=$CM_KEY_ALIAS \
+            --key-pass=pass:$CM_KEY_PASSWORD
           
-          # Ekstrak file APK dari archive .apks
+          # 5. Ekstrak file APK dari archive .apks
           unzip -p app.apks universal.apk > app-release.apk
 
     # scripts:
