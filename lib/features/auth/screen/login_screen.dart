@@ -124,6 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             }
                           },
                           style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.error,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),
