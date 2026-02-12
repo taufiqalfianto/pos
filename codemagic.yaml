@@ -7,7 +7,7 @@ workflows:
       events:
         - push
       branch_patterns:
-        - pattern: 'hotfix/*' # Build jalan jika push ke branch "hotfix/..."
+        - pattern: 'main'
       cancel_previous_builds: true
     environment:
       flutter: stable
