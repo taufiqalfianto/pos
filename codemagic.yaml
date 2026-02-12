@@ -1,84 +1,98 @@
 workflows:
+  # === WORKFLOW 1: RELEASE (Membuat APK Baru & Upload Firebase) ===
   android-shorebird-release:
     name: Android Shorebird Release
     max_build_duration: 60
     environment:
       flutter: stable
-      # BAGIAN INI SANGAT PENTING:
-      # Harus sama persis dengan nama grup di screenshot kamu (huruf kecil)
       groups:
-        - shorebird
-        - firebase
+        - shorebird # Token Shorebird kamu
+        - firebase  # Token Firebase & App ID kamu
     scripts:
       - name: Install Shorebird, Build & Convert to APK
         script: |
           set -e
           
-          # 1. Install Shorebird (Raw Source)
+          # 1. Install Shorebird
           echo "📥 Install Shorebird..."
           curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash
-          
-          # Tambahkan ke PATH
           export PATH="$HOME/.shorebird/bin:$PATH"
           
           # 2. Download bundletool (Alat pengubah AAB ke APK)
           echo "📥 Install Bundletool..."
           wget https://github.com/google/bundletool/releases/download/1.15.6/bundletool-all-1.15.6.jar -O bundletool.jar
           
-          # 3. Build Release (KOREKSI: Tanpa flag --flutter-version)
-          # Shorebird akan otomatis mendeteksi versi Flutter yang aktif di Codemagic
+          # 3. Build Release
+          # Menggunakan $BUILD_NUMBER agar versi selalu naik (misal: 1.0.0+5, 1.0.0+6)
           echo "🚀 Shorebird Release..."
-          shorebird release android --verbose
+          shorebird release android --verbose -- --build-number=$BUILD_NUMBER
           
-          # 4. Konversi AAB ke APK Universal
-          # Langkah ini wajib agar Firebase menerima aplikasi tanpa link Play Store
+          # --- BAGIAN PENTING: SOLUSI KARENA BELUM SET KEYSTORE ---
+          # 4. Buat Keystore Sementara (Debug Keystore) Otomatis
+          echo "🔑 Membuat Debug Keystore..."
+          keytool -genkey -v -keystore debug.keystore \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+          # --------------------------------------------------------
+          
+          # 5. Konversi AAB ke APK (Signed dengan Debug Keystore tadi)
           echo "🔄 Mengubah AAB menjadi APK..."
           java -jar bundletool.jar build-apks \
             --bundle=build/app/outputs/bundle/release/app-release.aab \
             --output=app.apks \
             --mode=universal \
+            --ks=debug.keystore \
+            --ks-pass=pass:android \
+            --ks-key-alias=androiddebugkey \
+            --key-pass=pass:android
           
-          # 5. Ekstrak file APK dari archive .apks
+          # 6. Ekstrak file APK
           unzip -p app.apks universal.apk > app-release.apk
-
-    # scripts:
-    #   - name: Install Shorebird & Build Release
-    #     script: |
-    #       set -e
-          
-    #       # 1. Install Shorebird (Raw Source)
-    #       echo "📥 Sedang menginstall Shorebird..."
-    #       curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash
-          
-    #       # 2. Tambahkan Shorebird ke PATH
-    #       export PATH="$HOME/.shorebird/bin:$PATH"
-          
-    #       # 3. Verifikasi Instalasi
-    #       shorebird --version
-          
-    #       # 4. Setup Flutter Dependencies
-    #       echo "📦 Mengambil dependencies..."
-    #       flutter pub get
-          
-    #       # 5. Jalankan Shorebird Release (TANPA flag --flutter-version)
-    #       # Shorebird akan otomatis menggunakan Flutter yang ada di Codemagic
-    #       echo "🚀 Memulai Shorebird Release..."
-    #       shorebird release android --verbose
 
     artifacts:
       - app-release.apk
-          
-    # artifacts:
-    #   - build/app/outputs/bundle/release/app-release.apk
       
     publishing:
       firebase:
-        # Menggunakan token dari grup "firebase"
         firebase_token: $FIREBASE_TOKEN 
         android:
-          # Menggunakan App ID dari grup "firebase"
           app_id: $FIREBASE_APP_ID 
-          # Pastikan kamu sudah membuat grup tester bernama "testers" di Firebase Console
-          # Atau ganti dengan nama grup yang sesuai, misal: "android-team"
           groups:
-            - internal-testers
+            - testers # Sesuaikan nama grup tester di Firebase
+
+  # === WORKFLOW 2: PATCH (Hanya Update Code Dart / Hotfix) ===
+  android-shorebird-patch:
+    name: Android Shorebird Patch (Hotfix)
+    max_build_duration: 30
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: 'hotfix/*' # Build jalan jika push ke branch "hotfix/..."
+      cancel_previous_builds: true
+    environment:
+      flutter: stable
+      groups:
+        - shorebird
+    scripts:
+      - name: Install Shorebird & Apply Patch
+        script: |
+          set -e
+          
+          # 1. Install Shorebird
+          echo "📥 Install Shorebird..."
+          curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/shorebirdtech/install/main/install.sh | bash
+          export PATH="$HOME/.shorebird/bin:$PATH"
+          
+          # 2. Setup Dependencies
+          echo "📦 Get Packages..."
+          flutter pub get
+          
+          # 3. Jalankan Patch
+          echo "🩹 Applying Patch..."
+          shorebird patch android --verbose
