@@ -129,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           child: const Text(
-                            'Masuk Sekarang',
+                            'Mau Masuk?',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
