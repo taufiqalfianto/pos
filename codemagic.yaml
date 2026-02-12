@@ -95,4 +95,6 @@ workflows:
           
           # 3. Jalankan Patch
           echo "🩹 Applying Patch..."
-          shorebird patch android --verbose
+          shorebird patch android \
+            --verbose \
+            --allow-asset-diffs
