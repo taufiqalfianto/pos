@@ -37,10 +37,6 @@ workflows:
             --bundle=build/app/outputs/bundle/release/app-release.aab \
             --output=app.apks \
             --mode=universal \
-            --ks=$CM_KEYSTORE_PATH \
-            --ks-pass=pass:$CM_KEYSTORE_PASSWORD \
-            --ks-key-alias=$CM_KEY_ALIAS \
-            --key-pass=pass:$CM_KEY_PASSWORD
           
           # 5. Ekstrak file APK dari archive .apks
           unzip -p app.apks universal.apk > app-release.apk
