@@ -119,7 +119,18 @@ class _ProductListScreenState extends State<ProductListScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Halo, Selamat Datang!', style: AppStyles.subtitleStyle),
+          BlocBuilder<AuthCubit, AuthState>(
+            builder: (context, state) {
+              final name = state is Authenticated
+                  ? state.user.name
+                  : 'Pengguna';
+              return Text(
+                'Halo, Selamat Datang $name!',
+                style: AppStyles.subtitleStyle,
+              );
+            },
+          ),
+
           SizedBox(height: 4.h),
           Text('Kelola Stok Anda', style: AppStyles.titleStyle),
           SizedBox(height: 20.h),

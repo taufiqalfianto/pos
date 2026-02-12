@@ -126,13 +126,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             }
                           },
                           style: FilledButton.styleFrom(
-                            backgroundColor: AppColors.error,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),
                           ),
                           child: const Text(
-                            'Mau Masuk?',
+                            'Masuk Sekarang',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
