@@ -3,6 +3,12 @@ workflows:
   android-shorebird-release:
     name: Android Shorebird Release
     max_build_duration: 60
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: 'hotfix/*' # Build jalan jika push ke branch "hotfix/..."
+      cancel_previous_builds: true
     environment:
       flutter: stable
       groups:
