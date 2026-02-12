@@ -63,7 +63,7 @@ workflows:
         android:
           app_id: $FIREBASE_APP_ID 
           groups:
-            - testers # Sesuaikan nama grup tester di Firebase
+            - internal-testers # Sesuaikan nama grup tester di Firebase
 
   # === WORKFLOW 2: PATCH (Hanya Update Code Dart / Hotfix) ===
   android-shorebird-patch:
