@@ -32,29 +32,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.sync_rounded, color: AppColors.primary),
-              tooltip: 'Sync Data',
-              onPressed: () {
-                context.read<ProductCubit>().syncData();
-                ToastHelper.showInfo(
-                  context,
-                  'Penyelarasan data sedang berjalan...',
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Dashboard')),
       drawer: _buildPremiumDrawer(context),
       body: Column(
         children: [
@@ -66,29 +44,40 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   return const Center(child: CircularProgressIndicator());
                 } else if (state is ProductLoaded) {
                   if (state.products.isEmpty) {
-                    return Center(child: _buildEmptyState());
+                    return Center(
+                      child: _buildEmptyState(
+                        _searchController.text.isNotEmpty,
+                      ),
+                    );
                   }
                   final screenWidth = MediaQuery.of(context).size.width;
                   final crossAxisCount = screenWidth > 900
                       ? 5
                       : (screenWidth > 600 ? 3 : 2);
 
-                  return GridView.builder(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 20.w,
-                      vertical: 10.h,
-                    ),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
-                      childAspectRatio: 0.72,
-                      crossAxisSpacing: 16.w,
-                      mainAxisSpacing: 16.h,
-                    ),
-                    itemCount: state.products.length,
-                    itemBuilder: (context, index) {
-                      final product = state.products[index];
-                      return _PremiumProductCard(product: product);
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      await context.read<ProductCubit>().loadProducts();
                     },
+                    color: AppColors.primary,
+                    child: GridView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 10.h,
+                      ),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        childAspectRatio: 0.72,
+                        crossAxisSpacing: 16.w,
+                        mainAxisSpacing: 16.h,
+                      ),
+                      itemCount: state.products.length,
+                      itemBuilder: (context, index) {
+                        final product = state.products[index];
+                        return _PremiumProductCard(product: product);
+                      },
+                    ),
                   );
                 } else if (state is ProductError) {
                   return Center(child: Text(state.message));
@@ -166,8 +155,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState([bool isSearch = false]) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           padding: const EdgeInsets.all(32),
@@ -177,19 +167,21 @@ class _ProductListScreenState extends State<ProductListScreen> {
             boxShadow: AppStyles.premiumShadow,
           ),
           child: Icon(
-            Icons.inventory_2_rounded,
+            isSearch ? Icons.search_off_rounded : Icons.inventory_2_rounded,
             size: 64,
             color: AppColors.primary.withOpacity(0.5),
           ),
         ),
         const SizedBox(height: 24),
-        const Text(
-          'Belum ada produk',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        Text(
+          isSearch ? 'Produk tidak ditemukan' : 'Belum ada produk',
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         Text(
-          'Ketuk tombol + untuk mulai menambah produk',
+          isSearch
+              ? 'Coba gunakan kata kunci pencarian yang lain'
+              : 'Ketuk tombol + untuk mulai menambah produk',
           style: AppStyles.subtitleStyle,
         ),
       ],
@@ -432,43 +424,6 @@ class _PremiumProductCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: product.isSynced == 1
-                              ? AppColors.success.withOpacity(0.1)
-                              : Colors.grey.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              product.isSynced == 1
-                                  ? Icons.cloud_done_rounded
-                                  : Icons.cloud_off_rounded,
-                              size: 12,
-                              color: product.isSynced == 1
-                                  ? AppColors.success
-                                  : AppColors.textSecondary,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              product.isSynced == 1 ? 'Sinc' : 'Off',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: product.isSynced == 1
-                                    ? AppColors.success
-                                    : AppColors.textSecondary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                       const Spacer(),
                       Text(
                         'Stok: ${product.stock}',

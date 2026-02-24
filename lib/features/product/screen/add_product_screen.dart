@@ -261,8 +261,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     hintText: 'Harga',
                     prefixIcon: Icon(Icons.payments_rounded),
                   ),
-                  validator: (val) =>
-                      val!.isEmpty ? 'Harga tidak boleh kosong' : null,
+                  validator: (val) {
+                    if (val == null || val.isEmpty)
+                      return 'Harga tidak boleh kosong';
+                    if (double.tryParse(val) == null || double.parse(val) < 0) {
+                      return 'Harga tidak valid';
+                    }
+                    return null;
+                  },
                 ),
               ),
               const SizedBox(width: 16),
@@ -274,8 +280,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     hintText: 'Stok',
                     prefixIcon: Icon(Icons.inventory_rounded),
                   ),
-                  validator: (val) =>
-                      val!.isEmpty ? 'Stok tidak boleh kosong' : null,
+                  validator: (val) {
+                    if (val == null || val.isEmpty)
+                      return 'Stok tidak boleh kosong';
+                    if (int.tryParse(val) == null || int.parse(val) < 0) {
+                      return 'Stok tidak valid';
+                    }
+                    return null;
+                  },
                 ),
               ),
             ],

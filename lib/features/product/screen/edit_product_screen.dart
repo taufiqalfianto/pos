@@ -35,7 +35,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
     super.initState();
     _nameController = TextEditingController(text: widget.product.name);
     _priceController = TextEditingController(
-      text: widget.product.price.toString(),
+      text: widget.product.price.toStringAsFixed(0),
     );
     _stockController = TextEditingController(
       text: widget.product.stock.toString(),
@@ -256,12 +256,12 @@ class _EditProductScreenState extends State<EditProductScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildFieldHeader('Update Informasi Produk'),
+          _buildFieldHeader('Detail Produk'),
           const SizedBox(height: 16),
           TextFormField(
             controller: _nameController,
             decoration: const InputDecoration(
-              hintText: 'Nama Produk',
+              hintText: 'Nama Produk (cth: Kopi Susu Gula Aren)',
               prefixIcon: Icon(Icons.label_rounded),
             ),
             validator: (val) => val!.isEmpty ? 'Nama tidak boleh kosong' : null,
@@ -278,8 +278,14 @@ class _EditProductScreenState extends State<EditProductScreen> {
                     hintText: 'Harga',
                     prefixIcon: Icon(Icons.payments_rounded),
                   ),
-                  validator: (val) =>
-                      val!.isEmpty ? 'Harga tidak boleh kosong' : null,
+                  validator: (val) {
+                    if (val == null || val.isEmpty)
+                      return 'Harga tidak boleh kosong';
+                    if (double.tryParse(val) == null || double.parse(val) < 0) {
+                      return 'Harga tidak valid';
+                    }
+                    return null;
+                  },
                 ),
               ),
               const SizedBox(width: 16),
@@ -291,8 +297,14 @@ class _EditProductScreenState extends State<EditProductScreen> {
                     hintText: 'Stok',
                     prefixIcon: Icon(Icons.inventory_rounded),
                   ),
-                  validator: (val) =>
-                      val!.isEmpty ? 'Stok tidak boleh kosong' : null,
+                  validator: (val) {
+                    if (val == null || val.isEmpty)
+                      return 'Stok tidak boleh kosong';
+                    if (int.tryParse(val) == null || int.parse(val) < 0) {
+                      return 'Stok tidak valid';
+                    }
+                    return null;
+                  },
                 ),
               ),
             ],
@@ -322,13 +334,14 @@ class _EditProductScreenState extends State<EditProductScreen> {
             },
           ),
           const SizedBox(height: 16),
-          _buildFieldHeader('Deskripsi Produk'),
+          _buildFieldHeader('Deskripsi (Opsional)'),
           const SizedBox(height: 12),
           TextFormField(
             controller: _descriptionController,
             maxLines: 4,
             decoration: const InputDecoration(
-              hintText: 'Deskripsi Produk',
+              hintText:
+                  'Deskripsi Produk (cth: Kopi susu khas dengan gula aren asli)',
               prefixIcon: Padding(
                 padding: EdgeInsets.only(bottom: 60),
                 child: Icon(Icons.notes_rounded),
