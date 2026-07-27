@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pos/core/util/app_style.dart';
+import 'package:pos/core/util/responsive_layout.dart';
 
 class ModernDialog extends StatelessWidget {
   final String title;
@@ -47,41 +48,59 @@ class ModernDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isTablet = ResponsiveLayout.isTablet(context);
+    final isLandscape = context.isLandscape;
+
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.all(24),
+      insetPadding: EdgeInsets.all(isLandscape || isTablet ? 20 : 24),
       child: Container(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(isLandscape || isTablet ? 24 : 32),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(32),
+          borderRadius: BorderRadius.circular(
+            isLandscape || isTablet ? 28 : 32,
+          ),
           boxShadow: AppStyles.premiumShadow,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(isLandscape || isTablet ? 16 : 20),
               decoration: BoxDecoration(
-                color: confirmColor.withOpacity(0.1),
+                color: confirmColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 40, color: confirmColor),
+              child: Icon(
+                icon,
+                size: isLandscape || isTablet ? 36 : 40,
+                color: confirmColor,
+              ),
             ),
-            const SizedBox(height: 24),
-            Text(title, style: AppStyles.titleStyle.copyWith(fontSize: 22)),
-            const SizedBox(height: 24),
+            SizedBox(height: isLandscape || isTablet ? 18 : 24),
+            Text(
+              title,
+              style: AppStyles.titleStyle.copyWith(
+                fontSize: isLandscape || isTablet ? 20 : 22,
+              ),
+            ),
+            SizedBox(height: isLandscape || isTablet ? 18 : 24),
             content,
-            const SizedBox(height: 32),
+            SizedBox(height: isLandscape || isTablet ? 24 : 32),
             Row(
               children: [
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isLandscape || isTablet ? 14 : 16,
+                      ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(
+                          isLandscape || isTablet ? 14 : 16,
+                        ),
                       ),
                     ),
                     child: Text(
@@ -102,9 +121,13 @@ class ModernDialog extends StatelessWidget {
                     },
                     style: FilledButton.styleFrom(
                       backgroundColor: confirmColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isLandscape || isTablet ? 14 : 16,
+                      ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(
+                          isLandscape || isTablet ? 14 : 16,
+                        ),
                       ),
                     ),
                     child: Text(

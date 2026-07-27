@@ -2,9 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/util/modern_dialog.dart';
+import 'package:pos/core/util/responsive_layout.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/helper/currency_helper.dart';
 import 'package:pos/core/helper/file_helper.dart';
@@ -17,11 +18,15 @@ class ProductDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape = context.isLandscape;
+    final isTablet = ResponsiveLayout.isTablet(context);
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          _buildSliverAppBar(context),
-          SliverToBoxAdapter(child: _buildDetailsContent(context)),
+          _buildSliverAppBar(context, isLandscape: isLandscape),
+          SliverToBoxAdapter(
+            child: _buildDetailsContent(context, isLandscape: isLandscape),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -32,14 +37,19 @@ class ProductDetailScreen extends StatelessWidget {
           'Edit Produk',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(isTablet ? 18 : 20),
+        ),
       ),
     );
   }
 
-  Widget _buildSliverAppBar(BuildContext context) {
+  Widget _buildSliverAppBar(BuildContext context, {required bool isLandscape}) {
+    final isTablet = ResponsiveLayout.isTablet(context);
     return SliverAppBar(
-      expandedHeight: 350,
+      expandedHeight: isLandscape
+          ? (isTablet ? 220 : 240)
+          : (isTablet ? 300 : 350),
       pinned: true,
       stretch: true,
       backgroundColor: AppColors.background,
@@ -109,9 +119,15 @@ class ProductDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailsContent(BuildContext context) {
+  Widget _buildDetailsContent(
+    BuildContext context, {
+    required bool isLandscape,
+  }) {
+    final isTablet = ResponsiveLayout.isTablet(context);
     return Container(
-      padding: const EdgeInsets.all(32),
+      padding: EdgeInsets.all(
+        isLandscape ? (isTablet ? 22 : 24) : (isTablet ? 28 : 32),
+      ),
       decoration: const BoxDecoration(
         color: AppColors.background,
         borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
@@ -128,7 +144,11 @@ class ProductDetailScreen extends StatelessWidget {
                   children: [
                     Text(
                       product.name,
-                      style: AppStyles.titleStyle.copyWith(fontSize: 28),
+                      style: AppStyles.titleStyle.copyWith(
+                        fontSize: isLandscape
+                            ? (isTablet ? 22 : 24)
+                            : (isTablet ? 26 : 28),
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text('Kategori: Umum', style: AppStyles.subtitleStyle),
@@ -136,8 +156,10 @@ class ProductDetailScreen extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.all(16),
-                decoration: AppStyles.glassDecoration(borderRadius: 20),
+                padding: EdgeInsets.all(isTablet ? 14 : 16),
+                decoration: AppStyles.glassDecoration(
+                  borderRadius: isTablet ? 18 : 20,
+                ),
                 child: Text(
                   CurrencyHelper.formatIdr(product.price),
                   style: const TextStyle(
@@ -149,14 +171,16 @@ class ProductDetailScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 32),
+          SizedBox(height: isTablet ? 24 : 32),
           _buildInfoRow(
+            context,
             Icons.inventory_2_rounded,
             'Stok Tersedia',
             '${product.stock} Unit',
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: isTablet ? 12 : 16),
           _buildInfoRow(
+            context,
             product.isSynced == 1
                 ? Icons.cloud_done_rounded
                 : Icons.cloud_off_rounded,
@@ -166,7 +190,7 @@ class ProductDetailScreen extends StatelessWidget {
                 ? AppColors.success
                 : AppColors.warning,
           ),
-          const SizedBox(height: 32),
+          SizedBox(height: isTablet ? 24 : 32),
           const Text(
             'Deskripsi',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
@@ -189,8 +213,10 @@ class ProductDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.all(20),
-            decoration: AppStyles.glassDecoration(borderRadius: 24),
+            padding: EdgeInsets.all(isTablet ? 16 : 20),
+            decoration: AppStyles.glassDecoration(
+              borderRadius: isTablet ? 20 : 24,
+            ),
             child: Column(
               children: [
                 Row(
@@ -207,7 +233,7 @@ class ProductDetailScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: isTablet ? 16 : 20),
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
@@ -216,10 +242,12 @@ class ProductDetailScreen extends StatelessWidget {
                     icon: const Icon(Icons.analytics_outlined),
                     label: const Text('LIHAT LAPORAN STOK'),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isTablet ? 14 : 16,
+                      ),
                       side: const BorderSide(color: AppColors.primary),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(isTablet ? 14 : 16),
                       ),
                     ),
                   ),
@@ -227,51 +255,59 @@ class ProductDetailScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 100), // Spacing for FAB
+          SizedBox(
+            height: isLandscape ? (isTablet ? 64 : 72) : (isTablet ? 88 : 100),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildInfoRow(
+    BuildContext context,
     IconData icon,
     String label,
     String value, {
     Color? color,
   }) {
+    final isTablet = ResponsiveLayout.isTablet(context);
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isTablet ? 14 : 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(isTablet ? 18 : 20),
         boxShadow: AppStyles.premiumShadow,
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all(isTablet ? 8 : 10),
             decoration: BoxDecoration(
               color: (color ?? AppColors.primary).withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: color ?? AppColors.primary, size: 24),
+            child: Icon(
+              icon,
+              color: color ?? AppColors.primary,
+              size: isTablet ? 22 : 24,
+            ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: isTablet ? 12 : 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  fontSize: 12,
+                style: TextStyle(
+                  fontSize: isTablet ? 11 : 12,
                   color: AppColors.textSecondary,
                 ),
               ),
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: isTablet ? 15 : 16,
                 ),
               ),
             ],

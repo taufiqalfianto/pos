@@ -7,6 +7,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/helper/file_helper.dart';
+import 'package:pos/core/util/responsive_layout.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 
@@ -84,6 +85,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isTablet = ResponsiveLayout.isTablet(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Edit Profil')),
       body: BlocListener<AuthCubit, AuthState>(
@@ -92,139 +95,176 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ToastHelper.showError(context, state.message);
           }
         },
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              Center(
-                child: GestureDetector(
-                  onTap: _pickImage,
-                  child: Stack(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: CircleAvatar(
-                          radius: 60,
-                          backgroundColor: Colors.white,
-                          backgroundImage:
-                              _pickedImagePath != null &&
-                                  _pickedImagePath!.isNotEmpty
-                              ? FileImage(
-                                  File(
-                                    FileHelper.getFullPath(_pickedImagePath!),
-                                  ),
-                                )
-                              : null,
-                          child:
-                              _pickedImagePath == null ||
-                                  _pickedImagePath!.isEmpty
-                              ? const Icon(
-                                  Icons.person_rounded,
-                                  size: 80,
-                                  color: AppColors.primary,
-                                )
-                              : null,
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 3),
-                          ),
-                          child: const Icon(
-                            Icons.camera_alt_rounded,
-                            size: 20,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 48),
-              Container(
-                decoration: AppStyles.glassDecoration(borderRadius: 32),
-                padding: const EdgeInsets.all(32),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildHeader('Informasi Akun'),
-                      const SizedBox(height: 24),
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          hintText: 'Nama Lengkap',
-                          prefixIcon: Icon(Icons.badge_rounded),
-                        ),
-                        validator: (val) =>
-                            val!.isEmpty ? 'Nama harus diisi' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _usernameController,
-                        decoration: const InputDecoration(
-                          hintText: 'Username',
-                          prefixIcon: Icon(Icons.person_rounded),
-                        ),
-                        validator: (val) =>
-                            val!.isEmpty ? 'Username harus diisi' : null,
-                      ),
-                      const SizedBox(height: 40),
-                      SizedBox(
-                        height: 60,
-                        child: FilledButton(
-                          onPressed: _saveProfile,
-                          style: FilledButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                          child: const Text(
-                            'SIMPAN PERUBAHAN',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-              FutureBuilder<PackageInfo>(
-                future: PackageInfo.fromPlatform(),
-                builder: (context, snapshot) {
-                  final version = snapshot.data?.version ?? '1.0.0';
-                  final buildNumber = snapshot.data?.buildNumber ?? '1';
-                  return Text(
-                    'App Version $version ($buildNumber)',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+        child: LayoutBuilder(
+          builder: (context, _) {
+            final isLandscape = context.isLandscape;
+            return SingleChildScrollView(
+              padding: ResponsiveLayout.pagePadding(context),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: ResponsiveLayout.contentMaxWidth(
+                      context,
+                      maxWidth: 760,
                     ),
-                  );
-                },
+                  ),
+                  child: Column(
+                    children: [
+                      SizedBox(height: isTablet ? 16 : 20),
+                      Center(
+                        child: GestureDetector(
+                          onTap: _pickImage,
+                          child: Stack(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(isTablet ? 6 : 8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: CircleAvatar(
+                                  radius: isLandscape
+                                      ? (isTablet ? 48 : 52)
+                                      : (isTablet ? 56 : 60),
+                                  backgroundColor: Colors.white,
+                                  backgroundImage:
+                                      _pickedImagePath != null &&
+                                          _pickedImagePath!.isNotEmpty
+                                      ? FileImage(
+                                          File(
+                                            FileHelper.getFullPath(
+                                              _pickedImagePath!,
+                                            ),
+                                          ),
+                                        )
+                                      : null,
+                                  child:
+                                      _pickedImagePath == null ||
+                                          _pickedImagePath!.isEmpty
+                                      ? const Icon(
+                                          Icons.person_rounded,
+                                          size: 80,
+                                          color: AppColors.primary,
+                                        )
+                                      : null,
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: isTablet ? 2 : 3,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.camera_alt_rounded,
+                                    size: 18,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: isLandscape
+                            ? (isTablet ? 28 : 32)
+                            : (isTablet ? 40 : 48),
+                      ),
+                      Container(
+                        decoration: AppStyles.glassDecoration(
+                          borderRadius: isTablet ? 28 : 32,
+                        ),
+                        padding: EdgeInsets.all(
+                          isLandscape
+                              ? (isTablet ? 20 : 24)
+                              : (isTablet ? 28 : 32),
+                        ),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildHeader('Informasi Akun'),
+                              SizedBox(height: isTablet ? 20 : 24),
+                              TextFormField(
+                                controller: _nameController,
+                                decoration: const InputDecoration(
+                                  hintText: 'Nama Lengkap',
+                                  prefixIcon: Icon(Icons.badge_rounded),
+                                ),
+                                validator: (val) =>
+                                    val!.isEmpty ? 'Nama harus diisi' : null,
+                              ),
+                              SizedBox(height: isTablet ? 12 : 16),
+                              TextFormField(
+                                controller: _usernameController,
+                                decoration: const InputDecoration(
+                                  hintText: 'Username',
+                                  prefixIcon: Icon(Icons.person_rounded),
+                                ),
+                                validator: (val) => val!.isEmpty
+                                    ? 'Username harus diisi'
+                                    : null,
+                              ),
+                              SizedBox(height: isTablet ? 28 : 40),
+                              SizedBox(
+                                height: isTablet ? 52 : 60,
+                                child: FilledButton(
+                                  onPressed: _saveProfile,
+                                  style: FilledButton.styleFrom(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                        isTablet ? 16 : 20,
+                                      ),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'SIMPAN PERUBAHAN',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: isTablet ? 24 : 32),
+                      FutureBuilder<PackageInfo>(
+                        future: PackageInfo.fromPlatform(),
+                        builder: (context, snapshot) {
+                          final version = snapshot.data?.version ?? '1.0.0';
+                          final buildNumber = snapshot.data?.buildNumber ?? '1';
+                          return Text(
+                            'App Version $version ($buildNumber)',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          );
+                        },
+                      ),
+                      SizedBox(height: isTablet ? 12 : 16),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

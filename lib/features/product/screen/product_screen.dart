@@ -2,12 +2,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/helper/currency_helper.dart';
 import 'package:pos/core/helper/file_helper.dart';
 import 'package:pos/core/util/modern_dialog.dart';
+import 'package:pos/core/util/responsive_layout.dart';
 import 'package:pos/features/product/data/model/product_model.dart';
 import '../cubit/product_cubit.dart';
 import '../../auth/cubit/auth_cubit.dart';
@@ -22,7 +23,6 @@ class ProductListScreen extends StatefulWidget {
 
 class _ProductListScreenState extends State<ProductListScreen> {
   final TextEditingController _searchController = TextEditingController();
-
   @override
   void initState() {
     super.initState();
@@ -31,6 +31,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape = context.isLandscape;
+    final isTablet = ResponsiveLayout.of(context).isTablet;
+    final useCompactFab = isLandscape && !isTablet;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Dashboard')),
       drawer: _buildPremiumDrawer(context),
@@ -50,10 +54,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       ),
                     );
                   }
-                  final screenWidth = MediaQuery.of(context).size.width;
-                  final crossAxisCount = screenWidth > 900
-                      ? 5
-                      : (screenWidth > 600 ? 3 : 2);
+                  final crossAxisCount = ResponsiveLayout.gridColumns(
+                    context,
+                    portrait: 2,
+                    landscape: 3,
+                    wide: 4,
+                    desktop: 5,
+                  );
 
                   return RefreshIndicator(
                     onRefresh: () async {
@@ -88,23 +95,39 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/add'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        label: const Text(
-          'Tambah Produk',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        icon: const Icon(Icons.add_rounded),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      ),
+      floatingActionButton: useCompactFab
+          ? FloatingActionButton(
+              onPressed: () => context.push('/add'),
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(Icons.add_rounded),
+            )
+          : FloatingActionButton.extended(
+              onPressed: () => context.push('/add'),
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              label: const Text(
+                'Tambah Produk',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              icon: const Icon(Icons.add_rounded),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
     );
   }
 
   Widget _buildHeaderSection() {
+    final isLandscape = context.isLandscape;
+    final isTablet = ResponsiveLayout.of(context).isTablet;
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+      padding: EdgeInsets.all(isLandscape || isTablet ? 12.w : 20.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -115,14 +138,29 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   : 'Pengguna';
               return Text(
                 'Halo, Selamat Datang $name!',
-                style: AppStyles.subtitleStyle,
+                style: AppStyles.subtitleStyle.copyWith(
+                  fontSize: isLandscape && !isTablet
+                      ? 10.sp
+                      : isTablet
+                      ? 14.sp
+                      : 16.sp,
+                ),
               );
             },
           ),
 
           SizedBox(height: 4.h),
-          Text('Kelola Stok Anda', style: AppStyles.titleStyle),
-          SizedBox(height: 20.h),
+          Text(
+            'Kelola Stok Anda',
+            style: AppStyles.titleStyle.copyWith(
+              fontSize: isLandscape && !isTablet
+                  ? 8.sp
+                  : isTablet
+                  ? 15.sp
+                  : 16.sp,
+            ),
+          ),
+          SizedBox(height: isLandscape || isTablet ? 12.h : 20.h),
           TextField(
             controller: _searchController,
             onChanged: (query) =>
@@ -134,19 +172,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 color: AppColors.textSecondary,
               ),
               hintStyle: const TextStyle(color: AppColors.textSecondary),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
-                  color: AppColors.textSecondary.withValues(alpha: 0.2),
-                  width: 1,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(
-                  color: AppColors.primary,
-                  width: 1.5,
-                ),
+              contentPadding: ResponsiveLayout.contentPadding(
+                context,
+                portraitHorizontal: 20,
+                portraitVertical: 16,
+                landscapeHorizontal: 16,
+                landscapeVertical: 10,
               ),
             ),
           ),
@@ -156,35 +187,66 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   Widget _buildEmptyState([bool isSearch = false]) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: AppStyles.premiumShadow,
+    final isLandscape = context.isLandscape;
+    final isTablet = ResponsiveLayout.of(context).isTablet;
+
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: EdgeInsets.all(
+              isLandscape && !isTablet
+                  ? 20.sp
+                  : isTablet
+                  ? 24.sp
+                  : 32.sp,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: AppStyles.premiumShadow,
+            ),
+            child: Icon(
+              isSearch ? Icons.search_off_rounded : Icons.inventory_2_rounded,
+              size: isLandscape && !isTablet
+                  ? 44
+                  : isTablet
+                  ? 56
+                  : 64,
+              color: AppColors.primary.withValues(alpha: 0.5),
+            ),
           ),
-          child: Icon(
-            isSearch ? Icons.search_off_rounded : Icons.inventory_2_rounded,
-            size: 64,
-            color: AppColors.primary.withOpacity(0.5),
+          SizedBox(height: isLandscape || isTablet ? 14 : 24),
+          Text(
+            isSearch ? 'Produk tidak ditemukan' : 'Belum ada produk',
+            style: TextStyle(
+              fontSize: isLandscape && !isTablet
+                  ? 18.sp
+                  : isTablet
+                  ? 17.sp
+                  : 18.sp,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-        const SizedBox(height: 24),
-        Text(
-          isSearch ? 'Produk tidak ditemukan' : 'Belum ada produk',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          isSearch
-              ? 'Coba gunakan kata kunci pencarian yang lain'
-              : 'Ketuk tombol + untuk mulai menambah produk',
-          style: AppStyles.subtitleStyle,
-        ),
-      ],
+          SizedBox(height: isLandscape || isTablet ? 6.h : 8.h),
+          Text(
+            isSearch
+                ? 'Coba gunakan kata kunci pencarian yang lain'
+                : 'Ketuk tombol + untuk mulai menambah produk',
+            textAlign: TextAlign.center,
+            style: isLandscape
+                ? AppStyles.subtitleStyle.copyWith(
+                    fontSize: isTablet ? 13.sp : 12.sp,
+                  )
+                : (isTablet
+                      ? AppStyles.subtitleStyle.copyWith(fontSize: 13.sp)
+                      : AppStyles.subtitleStyle),
+          ),
+          SizedBox(height: isLandscape || isTablet ? 14.h : 24),
+        ],
+      ),
     );
   }
 
@@ -247,7 +309,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     Text(
                       username,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         fontSize: 14,
                       ),
                     ),
@@ -349,7 +411,9 @@ class _PremiumProductCard extends StatelessWidget {
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
-                                color: AppColors.primary.withOpacity(0.05),
+                                color: AppColors.primary.withValues(
+                                  alpha: 0.05,
+                                ),
                                 child: const Icon(
                                   Icons.shopping_bag_rounded,
                                   size: 40,
@@ -359,7 +423,7 @@ class _PremiumProductCard extends StatelessWidget {
                             },
                           )
                         : Container(
-                            color: AppColors.primary.withOpacity(0.05),
+                            color: AppColors.primary.withValues(alpha: 0.05),
                             child: const Icon(
                               Icons.shopping_bag_rounded,
                               size: 40,
@@ -382,7 +446,7 @@ class _PremiumProductCard extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.error.withOpacity(0.9),
+                          color: AppColors.error.withValues(alpha: 0.9),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text(
@@ -447,7 +511,7 @@ class _PremiumProductCard extends StatelessWidget {
   Widget _buildPopOptions(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: Colors.white.withValues(alpha: 0.8),
         shape: BoxShape.circle,
       ),
       child: PopupMenuButton<String>(
@@ -550,7 +614,7 @@ class _DrawerItem extends StatelessWidget {
           ),
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        tileColor: isActive ? activeColor.withOpacity(0.1) : null,
+        tileColor: isActive ? activeColor.withValues(alpha: 0.1) : null,
       ),
     );
   }

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/currency_helper.dart';
+import 'package:pos/core/util/responsive_layout.dart';
 import '../../order/cubit/sales_report_cubit.dart';
 
 class SalesReportScreen extends StatefulWidget {
@@ -49,52 +50,66 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
           if (state is SalesReportLoading) {
             return const Center(child: CircularProgressIndicator());
           } else if (state is SalesReportLoaded) {
-            return Column(
-              children: [
-                _buildFilterHeader(state),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSummaryGrid(state),
-                        const SizedBox(height: 32),
-                        const Text(
-                          'Penjualan Per Kategori',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        _buildCategorySalesList(state.categorySales),
-                        const SizedBox(height: 32),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Total Penjualan:',
-                              style: AppStyles.subtitleStyle,
-                            ),
-                            Text(
-                              CurrencyHelper.formatIdr(state.totalRevenue),
-                              style: TextStyle(
-                                fontSize: 24.sp,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
+            return LayoutBuilder(
+              builder: (context, _) {
+                return Column(
+                  children: [
+                    _buildFilterHeader(state),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: ResponsiveLayout.pagePadding(context),
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: ResponsiveLayout.contentMaxWidth(
+                                context,
+                                maxWidth: 980,
                               ),
                             ),
-                          ],
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSummaryGrid(context, state),
+                                const SizedBox(height: 32),
+                                const Text(
+                                  'Penjualan Per Kategori',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                _buildCategorySalesList(state.categorySales),
+                                const SizedBox(height: 32),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Total Penjualan:',
+                                      style: AppStyles.subtitleStyle,
+                                    ),
+                                    Text(
+                                      CurrencyHelper.formatIdr(
+                                        state.totalRevenue,
+                                      ),
+                                      style: TextStyle(
+                                        fontSize: 24.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-              ],
+                  ],
+                );
+              },
             );
           } else if (state is SalesReportError) {
             return Center(child: Text(state.message));
@@ -171,11 +186,17 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
     );
   }
 
-  Widget _buildSummaryGrid(SalesReportLoaded state) {
+  Widget _buildSummaryGrid(BuildContext context, SalesReportLoaded state) {
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
+      crossAxisCount: ResponsiveLayout.gridColumns(
+        context,
+        portrait: 2,
+        landscape: 2,
+        wide: 3,
+        desktop: 4,
+      ),
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
       childAspectRatio: 1.1,

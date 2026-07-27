@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pos/core/util/app_style.dart';
+import 'package:pos/core/util/responsive_layout.dart';
 
 class AppTheme {
-  static ThemeData get lightTheme {
+  static ThemeData lightTheme(BuildContext context) {
+    final isLandscape = context.isLandscape;
+    final isTablet = ResponsiveLayout.isTablet(context);
+
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
@@ -37,23 +41,30 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 24,
-          vertical: 18,
+        isDense: true,
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: isLandscape || isTablet ? 16 : 20,
+          vertical: isLandscape || isTablet ? 10 : 16,
         ),
+        prefixIconColor: AppColors.textSecondary,
+        suffixIconColor: AppColors.textSecondary,
+        alignLabelWithHint: true,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(18),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide(color: Colors.black.withOpacity(0.05)),
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(color: Colors.black.withValues(alpha: 0.05)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(18),
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
       ),
+      visualDensity: (isLandscape || isTablet)
+          ? VisualDensity.compact
+          : VisualDensity.standard,
     );
   }
 }

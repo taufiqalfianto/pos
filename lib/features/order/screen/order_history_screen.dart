@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/currency_helper.dart';
+import 'package:pos/core/util/responsive_layout.dart';
 import 'package:pos/features/order/cubit/order_cubit.dart';
 import 'package:pos/features/order/cubit/order_state.dart';
 
@@ -27,12 +28,26 @@ class OrderHistoryScreen extends StatelessWidget {
               return _buildEmptyHistory();
             }
 
-            return ListView.builder(
-              padding: const EdgeInsets.all(20),
-              itemCount: state.orders.length,
-              itemBuilder: (context, index) {
-                final order = state.orders[index];
-                return _PremiumHistoryCard(order: order);
+            return LayoutBuilder(
+              builder: (context, _) {
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: ResponsiveLayout.contentMaxWidth(
+                        context,
+                        maxWidth: 840,
+                      ),
+                    ),
+                    child: ListView.builder(
+                      padding: ResponsiveLayout.pagePadding(context),
+                      itemCount: state.orders.length,
+                      itemBuilder: (context, index) {
+                        final order = state.orders[index];
+                        return _PremiumHistoryCard(order: order);
+                      },
+                    ),
+                  ),
+                );
               },
             );
           }

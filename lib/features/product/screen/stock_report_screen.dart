@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos/core/util/app_style.dart';
+import 'package:pos/core/util/responsive_layout.dart';
 import '../cubit/stock_report_cubit.dart';
 import '../data/model/product_model.dart';
 
@@ -23,6 +24,7 @@ class _StockReportScreenState extends State<StockReportScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape = context.isLandscape;
     return Scaffold(
       appBar: AppBar(title: const Text('Laporan Stok')),
       body: Column(
@@ -44,7 +46,12 @@ class _StockReportScreenState extends State<StockReportScreen> {
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: ResponsiveLayout.pagePadding(
+            context,
+            portrait: 24,
+            landscape: 32,
+            vertical: isLandscape ? 16 : 24,
+          ),
           child: SizedBox(
             height: 60,
             child: FilledButton.icon(
@@ -133,80 +140,97 @@ class _StockReportScreenState extends State<StockReportScreen> {
               ),
             );
           }
-          return ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            itemCount: state.reports.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final report = state.reports[index];
-              final isPositive = report.adjustment > 0;
-              final adjText = isPositive
-                  ? '+${report.adjustment}'
-                  : '${report.adjustment}';
-              final adjColor = isPositive ? AppColors.success : AppColors.error;
+          return LayoutBuilder(
+            builder: (context, _) {
+              final maxWidth = ResponsiveLayout.contentMaxWidth(
+                context,
+                maxWidth: 760,
+              );
+              return Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: maxWidth),
+                  child: ListView.separated(
+                    padding: ResponsiveLayout.pagePadding(context),
+                    itemCount: state.reports.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final report = state.reports[index];
+                      final isPositive = report.adjustment > 0;
+                      final adjText = isPositive
+                          ? '+${report.adjustment}'
+                          : '${report.adjustment}';
+                      final adjColor = isPositive
+                          ? AppColors.success
+                          : AppColors.error;
 
-              return Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.black.withOpacity(0.05)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          DateFormat(
-                            'dd MMM yyyy, HH:mm',
-                          ).format(report.createdAt),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
+                      return Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.black.withOpacity(0.05),
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: adjColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            adjText,
-                            style: TextStyle(
-                              color: adjColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  DateFormat(
+                                    'dd MMM yyyy, HH:mm',
+                                  ).format(report.createdAt),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: adjColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    adjText,
+                                    style: TextStyle(
+                                      color: adjColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                _infoItem('Sistem', '${report.systemStock}'),
+                                const SizedBox(width: 24),
+                                _infoItem('Manual', '${report.manualStock}'),
+                              ],
+                            ),
+                            if (report.note.isNotEmpty) ...[
+                              const Divider(height: 24),
+                              Text(
+                                report.note,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.textSecondary,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        _infoItem('Sistem', '${report.systemStock}'),
-                        const SizedBox(width: 24),
-                        _infoItem('Manual', '${report.manualStock}'),
-                      ],
-                    ),
-                    if (report.note.isNotEmpty) ...[
-                      const Divider(height: 24),
-                      Text(
-                        report.note,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textSecondary,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
-                  ],
+                      );
+                    },
+                  ),
                 ),
               );
             },

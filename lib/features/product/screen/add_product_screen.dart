@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pos/core/util/app_style.dart';
@@ -9,6 +9,7 @@ import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/features/product/data/model/product_model.dart';
 import 'package:uuid/uuid.dart';
 import 'package:pos/core/helper/file_helper.dart';
+import 'package:pos/core/util/responsive_layout.dart';
 import '../cubit/product_cubit.dart';
 
 import '../cubit/category_cubit.dart';
@@ -81,13 +82,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isTablet = ResponsiveLayout.isTablet(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Tambah Produk')),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth > 800;
+          final isLandscape = context.isLandscape;
+          final useLandscapeSizing = isLandscape || isTablet;
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: ResponsiveLayout.pagePadding(context),
             child: Center(
               child: Container(
                 constraints: BoxConstraints(
@@ -97,15 +101,23 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     ? Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(child: _buildImagePicker(context)),
-                          const SizedBox(width: 32),
+                          Expanded(
+                            child: _buildImagePicker(
+                              context,
+                              isLandscape: useLandscapeSizing,
+                            ),
+                          ),
+                          SizedBox(width: isTablet ? 24 : 32),
                           Expanded(flex: 2, child: _buildForm(context)),
                         ],
                       )
                     : Column(
                         children: [
-                          _buildImagePicker(context),
-                          const SizedBox(height: 32),
+                          _buildImagePicker(
+                            context,
+                            isLandscape: useLandscapeSizing,
+                          ),
+                          SizedBox(height: isTablet ? 24 : 32),
                           _buildForm(context),
                         ],
                       ),
@@ -117,14 +129,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
   }
 
-  Widget _buildImagePicker(BuildContext context) {
+  Widget _buildImagePicker(BuildContext context, {required bool isLandscape}) {
+    final isTablet = ResponsiveLayout.isTablet(context);
     return GestureDetector(
       onTap: () {
         showModalBottomSheet(
           context: context,
           backgroundColor: Colors.transparent,
           builder: (_) => Container(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(isTablet ? 20 : 24),
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
@@ -133,16 +146,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
+                  Text(
                     'Pilih Foto Produk',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: isTablet ? 16 : 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: isTablet ? 16 : 20),
                   ListTile(
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -167,7 +183,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.accent.withOpacity(0.1),
+                        color: AppColors.accent.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -195,7 +211,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
       },
       child: Container(
         width: double.infinity,
-        height: 300.h,
+        height: isLandscape
+            ? (isTablet ? 200.h : 220.h)
+            : (isTablet ? 260.h : 300.h),
         decoration: AppStyles.glassDecoration(borderRadius: 32.r),
         clipBehavior: Clip.antiAlias,
         child: _imagePath != null
@@ -207,18 +225,20 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: EdgeInsets.all(20.w),
+                    padding: EdgeInsets.all(
+                      isLandscape || isTablet ? 14 : 20.w,
+                    ),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.05),
+                      color: AppColors.primary.withValues(alpha: 0.05),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.add_a_photo_rounded,
-                      size: 48,
+                      size: isLandscape || isTablet ? 40 : 48,
                       color: AppColors.primary,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: isLandscape || isTablet ? 10 : 16),
                   const Text(
                     "Unggah Foto Produk",
                     style: TextStyle(
@@ -226,7 +246,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  Text("Ketuk untuk memilih", style: AppStyles.subtitleStyle),
+                  Text(
+                    "Ketuk untuk memilih",
+                    style: isLandscape || isTablet
+                        ? AppStyles.subtitleStyle.copyWith(fontSize: 12)
+                        : AppStyles.subtitleStyle,
+                  ),
                 ],
               ),
       ),

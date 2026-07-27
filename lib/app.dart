@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pos/core/routing/app_router.dart';
 import 'package:pos/core/theme/app_theme.dart';
 import 'package:pos/features/auth/cubit/auth_cubit.dart';
@@ -15,6 +14,7 @@ import 'package:pos/features/order/cubit/sales_report_cubit.dart';
 import 'package:go_router/go_router.dart';
 import 'package:restart_app/restart_app.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class PosApp extends StatefulWidget {
   final AuthCubit authCubit;
@@ -32,6 +32,7 @@ class _PosAppState extends State<PosApp> {
   void initState() {
     super.initState();
     _router = AppRouter.createRouter(widget.authCubit);
+    widget.authCubit.checkAuth();
     _checkForUpdates();
   }
 
@@ -70,14 +71,14 @@ class _PosAppState extends State<PosApp> {
     final productRepository = ProductRepository();
     final orderRepository = OrderRepository();
 
-    return ScreenUtilInit(
+    return ScreenUtilPlusInit(
       designSize: const Size(393, 852), // iPhone 14/15 base size
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
         return MultiBlocProvider(
           providers: [
-            BlocProvider.value(value: widget.authCubit..checkAuth()),
+            BlocProvider.value(value: widget.authCubit),
             BlocProvider(create: (context) => ProductCubit(productRepository)),
             BlocProvider(
               create: (context) => StockReportCubit(productRepository),
@@ -96,7 +97,7 @@ class _PosAppState extends State<PosApp> {
           child: MaterialApp.router(
             title: 'Flutter POS',
             debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
+            theme: AppTheme.lightTheme(context),
             routerConfig: _router,
           ),
         );

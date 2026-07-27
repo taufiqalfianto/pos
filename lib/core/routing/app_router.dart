@@ -27,16 +27,21 @@ class AppRouter {
       refreshListenable: GoRouterRefreshStream(authCubit.stream),
       redirect: (context, state) {
         final authState = authCubit.state;
-        final bool loggingIn =
+        final bool isPublicRoute =
+            state.matchedLocation == '/splash' ||
             state.matchedLocation == '/login' ||
             state.matchedLocation == '/register';
 
-        if (authState is! Authenticated && state.matchedLocation != '/splash') {
-          return loggingIn ? null : '/login';
+        if (authState is AuthLoading || authState is AuthInitial) {
+          return null;
         }
 
-        if (authState is Authenticated && loggingIn) {
+        if (authState is Authenticated && isPublicRoute) {
           return '/';
+        }
+
+        if (authState is Unauthenticated && !isPublicRoute) {
+          return '/login';
         }
 
         return null;

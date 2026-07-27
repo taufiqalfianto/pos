@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/features/product/data/model/product_model.dart';
 import 'package:pos/features/product/data/model/category_model.dart';
 import 'package:pos/core/helper/file_helper.dart';
+import 'package:pos/core/util/responsive_layout.dart';
 import '../cubit/product_cubit.dart';
 import '../cubit/category_cubit.dart';
 
@@ -96,13 +97,16 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isTablet = ResponsiveLayout.isTablet(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Edit Produk')),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth > 800;
+          final isLandscape = context.isLandscape;
+          final useLandscapeSizing = isLandscape || isTablet;
           return SingleChildScrollView(
-            padding: EdgeInsets.all(24.w),
+            padding: ResponsiveLayout.pagePadding(context),
             child: Center(
               child: Container(
                 constraints: BoxConstraints(
@@ -112,15 +116,23 @@ class _EditProductScreenState extends State<EditProductScreen> {
                     ? Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(child: _buildImagePicker(context)),
-                          SizedBox(width: 32.w),
+                          Expanded(
+                            child: _buildImagePicker(
+                              context,
+                              isLandscape: useLandscapeSizing,
+                            ),
+                          ),
+                          SizedBox(width: isTablet ? 24.w : 32.w),
                           Expanded(flex: 2, child: _buildForm(context)),
                         ],
                       )
                     : Column(
                         children: [
-                          _buildImagePicker(context),
-                          SizedBox(height: 32.h),
+                          _buildImagePicker(
+                            context,
+                            isLandscape: useLandscapeSizing,
+                          ),
+                          SizedBox(height: isTablet ? 24.h : 32.h),
                           _buildForm(context),
                         ],
                       ),
@@ -132,17 +144,20 @@ class _EditProductScreenState extends State<EditProductScreen> {
     );
   }
 
-  Widget _buildImagePicker(BuildContext context) {
+  Widget _buildImagePicker(BuildContext context, {required bool isLandscape}) {
+    final isTablet = ResponsiveLayout.isTablet(context);
     return GestureDetector(
       onTap: () {
         showModalBottomSheet(
           context: context,
           backgroundColor: Colors.transparent,
           builder: (_) => Container(
-            padding: EdgeInsets.all(24.w),
+            padding: EdgeInsets.all(isTablet ? 20.w : 24.w),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(32.r)),
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(isTablet ? 28.r : 32.r),
+              ),
             ),
             child: SafeArea(
               child: Column(
@@ -151,16 +166,16 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   Text(
                     'Ubah Foto Produk',
                     style: TextStyle(
-                      fontSize: 18.sp,
+                      fontSize: isTablet ? 16.sp : 18.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 20.h),
+                  SizedBox(height: isTablet ? 16.h : 20.h),
                   ListTile(
                     leading: Container(
                       padding: EdgeInsets.all(8.w),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -185,7 +200,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                     leading: Container(
                       padding: EdgeInsets.all(8.w),
                       decoration: BoxDecoration(
-                        color: AppColors.accent.withOpacity(0.1),
+                        color: AppColors.accent.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -212,7 +227,9 @@ class _EditProductScreenState extends State<EditProductScreen> {
         );
       },
       child: Container(
-        height: 300.h,
+        height: isLandscape
+            ? (isTablet ? 200.h : 220.h)
+            : (isTablet ? 260.h : 300.h),
         decoration: AppStyles.glassDecoration(borderRadius: 32.r),
         clipBehavior: Clip.antiAlias,
         child: _imagePath != null
@@ -224,18 +241,20 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: EdgeInsets.all(20.w),
+                    padding: EdgeInsets.all(
+                      isLandscape || isTablet ? 14 : 20.w,
+                    ),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.05),
+                      color: AppColors.primary.withValues(alpha: 0.05),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.add_a_photo_rounded,
-                      size: 48.w,
+                      size: isLandscape || isTablet ? 40 : 48.w,
                       color: AppColors.primary,
                     ),
                   ),
-                  SizedBox(height: 16.h),
+                  SizedBox(height: isLandscape || isTablet ? 10 : 16.h),
                   Text(
                     "Unggah Foto Produk",
                     style: TextStyle(
@@ -243,7 +262,12 @@ class _EditProductScreenState extends State<EditProductScreen> {
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  Text("Ketuk untuk memilih", style: AppStyles.subtitleStyle),
+                  Text(
+                    "Ketuk untuk memilih",
+                    style: isLandscape || isTablet
+                        ? AppStyles.subtitleStyle.copyWith(fontSize: 12)
+                        : AppStyles.subtitleStyle,
+                  ),
                 ],
               ),
       ),
