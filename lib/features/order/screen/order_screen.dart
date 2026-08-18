@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
@@ -11,6 +12,7 @@ import 'package:pos/features/order/cubit/order_cubit.dart';
 import 'package:pos/features/order/cubit/order_state.dart';
 import 'package:pos/features/product/cubit/product_cubit.dart';
 import 'package:pos/features/product/data/model/product_model.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class OrderScreen extends StatefulWidget {
   const OrderScreen({super.key});
@@ -52,14 +54,16 @@ class _OrderScreenState extends State<OrderScreen> {
         },
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final isTabletWidth = constraints.maxWidth >= 700;
+            final isTabletWidth = constraints.maxWidth >= 600;
 
             if (!isTabletWidth) {
               return Column(
                 children: [
                   Expanded(child: _buildProductGrid(context, 2)),
                   SizedBox(
-                    height: 280.h,
+                    // Tinggi cart adaptif: hindari overflow di layar pendek
+                    // (landscape) maupun saat keyboard terbuka.
+                    height: math.min(280.h, constraints.maxHeight * 0.45),
                     child: _buildGlassCart(context, compact: true),
                   ),
                 ],
@@ -171,7 +175,7 @@ class _OrderScreenState extends State<OrderScreen> {
             controller: _cartScrollController,
             thumbVisibility: true,
             thickness: 4,
-            radius: const Radius.circular(8),
+            radius: Radius.circular(8.r),
             child: ListView(
               controller: _cartScrollController,
               padding: EdgeInsets.zero,
@@ -182,9 +186,9 @@ class _OrderScreenState extends State<OrderScreen> {
                 else
                   ...items.map(
                     (item) => Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.w,
+                        vertical: 4.h,
                       ),
                       child: _CartItemTile(item: item),
                     ),
@@ -214,7 +218,9 @@ class _OrderScreenState extends State<OrderScreen> {
           Text(
             'Keranjang',
             style: TextStyle(
-              fontSize: compact ? 16 : (isLandscape || isTablet ? 16 : 18),
+              fontSize: compact
+                  ? 16.sp
+                  : (isLandscape || isTablet ? 16.sp : 18.sp),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -226,7 +232,7 @@ class _OrderScreenState extends State<OrderScreen> {
             ),
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(12.r),
             ),
             child: BlocBuilder<OrderCubit, OrderState>(
               builder: (context, state) {
@@ -241,10 +247,10 @@ class _OrderScreenState extends State<OrderScreen> {
                 }
                 return Text(
                   '$count item',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
-                    fontSize: 10,
+                    fontSize: 10.sp,
                   ),
                 );
               },
@@ -349,8 +355,8 @@ class _OrderScreenState extends State<OrderScreen> {
                             CurrencyHelper.formatIdr(total),
                             style: TextStyle(
                               fontSize: compact
-                                  ? (isLandscape || isTablet ? 17 : 18)
-                                  : (isLandscape || isTablet ? 18 : 20),
+                                  ? (isLandscape || isTablet ? 17.sp : 18.sp)
+                                  : (isLandscape || isTablet ? 18.sp : 20.sp),
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary,
                             ),
@@ -378,8 +384,8 @@ class _OrderScreenState extends State<OrderScreen> {
                               CurrencyHelper.formatIdr(total),
                               style: TextStyle(
                                 fontSize: compact
-                                    ? (isLandscape || isTablet ? 17 : 18)
-                                    : (isLandscape || isTablet ? 18 : 20),
+                                    ? (isLandscape || isTablet ? 17.sp : 18.sp)
+                                    : (isLandscape || isTablet ? 18.sp : 20.sp),
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.primary,
                               ),
@@ -391,7 +397,7 @@ class _OrderScreenState extends State<OrderScreen> {
                   SizedBox(height: compact ? 16 : 24),
                   SizedBox(
                     width: double.infinity,
-                    height: compact ? 25 : (isLandscape || isTablet ? 45 : 40),
+                    height: compact ? 45 : (isLandscape || isTablet ? 45 : 40),
                     child: FilledButton(
                       onPressed: hasItems
                           ? () => context.read<OrderCubit>().checkout()
@@ -444,18 +450,18 @@ class _OrderScreenState extends State<OrderScreen> {
                       color: Colors.white,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.check_rounded,
-                      size: 64,
+                      size: 64.r,
                       color: AppColors.primary,
                     ),
                   ),
                   const SizedBox(height: 24),
-                  const Text(
+                  Text(
                     'TRANSAKSI BERHASIL',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 24,
+                      fontSize: 24.sp,
                       fontWeight: FontWeight.bold,
                       decoration: TextDecoration.none,
                       fontFamily: 'Poppins',
@@ -464,14 +470,19 @@ class _OrderScreenState extends State<OrderScreen> {
                   const SizedBox(height: 40),
                   SizedBox(
                     width: 200,
-                    height: 50,
+                    height: ResponsiveLayout.adaptiveValue(
+                      context,
+                      portrait: 50,
+                      landscape: 44,
+                      tablet: 44,
+                    ),
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.white, width: 2),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
+                          borderRadius: BorderRadius.circular(25.r),
                         ),
                       ),
                       child: const Text(
@@ -524,7 +535,7 @@ class _OrderProductItem extends StatelessWidget {
         AspectRatio(
           aspectRatio: 1.0,
           child: Container(
-            padding: const EdgeInsets.all(6),
+            padding: EdgeInsets.all(6.w),
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.03),
               borderRadius: BorderRadius.horizontal(
@@ -540,16 +551,15 @@ class _OrderProductItem extends StatelessWidget {
                         ? Image.file(
                             File(FileHelper.getFullPath(product.imagePath)),
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Icon(
-                                  Icons.shopping_bag_rounded,
-                                  size: 28,
-                                  color: AppColors.primary,
-                                ),
+                            errorBuilder: (context, error, stackTrace) => Icon(
+                              Icons.shopping_bag_rounded,
+                              size: 28.r,
+                              color: AppColors.primary,
+                            ),
                           )
-                        : const Icon(
+                        : Icon(
                             Icons.shopping_bag_rounded,
-                            size: 28,
+                            size: 28.r,
                             color: AppColors.primary,
                           ),
                   ),
@@ -559,19 +569,19 @@ class _OrderProductItem extends StatelessWidget {
                     top: 2,
                     left: 2,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 2,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 4.w,
+                        vertical: 2.h,
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.error,
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(4.r),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Habis',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 8,
+                          fontSize: 8.sp,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -655,17 +665,16 @@ class _OrderProductItem extends StatelessWidget {
                         ? Image.file(
                             File(FileHelper.getFullPath(product.imagePath)),
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Icon(
-                                  Icons.shopping_bag_rounded,
-                                  size: 32,
-                                  color: AppColors.primary,
-                                ),
+                            errorBuilder: (context, error, stackTrace) => Icon(
+                              Icons.shopping_bag_rounded,
+                              size: 32.r,
+                              color: AppColors.primary,
+                            ),
                           )
-                        : const Center(
+                        : Center(
                             child: Icon(
                               Icons.shopping_bag_rounded,
-                              size: 32,
+                              size: 32.r,
                               color: AppColors.primary,
                             ),
                           ),
@@ -676,19 +685,19 @@ class _OrderProductItem extends StatelessWidget {
                     top: 6,
                     right: 6,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 3,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 6.w,
+                        vertical: 3.h,
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.error,
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(6.r),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Habis',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 9,
+                          fontSize: 9.sp,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -846,7 +855,7 @@ class _CartItemTile extends StatelessWidget {
         padding: EdgeInsets.all(isLandscape || isTablet ? 3 : 4),
         decoration: BoxDecoration(
           color: AppColors.background,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8.r),
         ),
         child: Icon(
           icon,

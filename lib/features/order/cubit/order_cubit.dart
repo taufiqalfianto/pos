@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
+import '../../../core/helper/app_logger.dart';
 import '../../product/data/model/product_model.dart';
 import '../../product/repository/product_repository.dart';
 import '../data/model/order_model.dart';
@@ -22,7 +23,6 @@ class OrderCubit extends Cubit<OrderState> {
 
     if (existingIndex >= 0) {
       final item = _cartItems[existingIndex];
-      // Check stock
       if (item.quantity + 1 > product.stock) {
         emit(const OrderError('Stok tidak mencukupi'));
         emit(OrderCartUpdated(List.from(_cartItems), _calculateTotal()));
@@ -36,7 +36,6 @@ class OrderCubit extends Cubit<OrderState> {
         quantity: item.quantity + 1,
       );
     } else {
-      // Check stock for new item
       if (product.stock < 1) {
         emit(const OrderError('Stok habis'));
         emit(OrderCartUpdated(List.from(_cartItems), _calculateTotal()));
@@ -58,49 +57,55 @@ class OrderCubit extends Cubit<OrderState> {
 
   void removeItem(String productId) {
     final index = _cartItems.indexWhere((item) => item.productId == productId);
-    if (index >= 0) {
-      if (_cartItems[index].quantity > 1) {
-        final item = _cartItems[index];
-        _cartItems[index] = OrderItemModel(
-          productId: item.productId,
-          productName: item.productName,
-          price: item.price,
-          quantity: item.quantity - 1,
-        );
-      } else {
-        _cartItems.removeAt(index);
-      }
+    if (index < 0) return;
+
+    if (_cartItems[index].quantity > 1) {
+      final item = _cartItems[index];
+      _cartItems[index] = OrderItemModel(
+        productId: item.productId,
+        productName: item.productName,
+        price: item.price,
+        quantity: item.quantity - 1,
+      );
+    } else {
+      _cartItems.removeAt(index);
     }
     emit(OrderCartUpdated(List.from(_cartItems), _calculateTotal()));
   }
 
   Future<void> updateQuantity(String productId, int quantity) async {
     final index = _cartItems.indexWhere((item) => item.productId == productId);
-    if (index >= 0) {
-      if (quantity <= 0) {
-        _cartItems.removeAt(index);
-      } else {
-        final item = _cartItems[index];
+    if (index < 0) return;
 
-        // Only check if increasing quantity
-        if (quantity > item.quantity) {
-          final product = await _productRepository.getProductById(productId);
-          if (product != null && quantity > product.stock) {
-            emit(const OrderError('Stok tidak mencukupi'));
-            emit(OrderCartUpdated(List.from(_cartItems), _calculateTotal()));
-            return;
-          }
-        }
-
-        _cartItems[index] = OrderItemModel(
-          productId: item.productId,
-          productName: item.productName,
-          price: item.price,
-          quantity: quantity,
-        );
-      }
+    if (quantity <= 0) {
+      _cartItems.removeAt(index);
       emit(OrderCartUpdated(List.from(_cartItems), _calculateTotal()));
+      return;
     }
+
+    if (quantity > _cartItems[index].quantity) {
+      try {
+        final product = await _productRepository.getProductById(productId);
+        if (product != null && quantity > product.stock) {
+          emit(const OrderError('Stok tidak mencukupi'));
+          emit(OrderCartUpdated(List.from(_cartItems), _calculateTotal()));
+          return;
+        }
+      } catch (e, stackTrace) {
+        AppLogger.error('Gagal cek stok', error: e, stackTrace: stackTrace);
+        emit(const OrderError('Gagal memeriksa stok produk'));
+        return;
+      }
+    }
+
+    final item = _cartItems[index];
+    _cartItems[index] = OrderItemModel(
+      productId: item.productId,
+      productName: item.productName,
+      price: item.price,
+      quantity: quantity,
+    );
+    emit(OrderCartUpdated(List.from(_cartItems), _calculateTotal()));
   }
 
   void clearCart() {
@@ -129,16 +134,13 @@ class OrderCubit extends Cubit<OrderState> {
         year: now.year,
       );
 
-      // Save to DB (this also reduces stock atomically)
       await _orderRepository.saveOrder(order);
-
-      // Notify product listeners that stock has changed
       _productRepository.notifyListeners();
 
       _cartItems = [];
       emit(OrderSuccess(order));
-    } catch (e) {
-      // The exception message from OrderRepository will be used here
+    } catch (e, stackTrace) {
+      AppLogger.error('Checkout gagal', error: e, stackTrace: stackTrace);
       String message = e.toString();
       if (message.startsWith('Exception: ')) {
         message = message.substring(11);
@@ -153,7 +155,8 @@ class OrderCubit extends Cubit<OrderState> {
       emit(OrderLoading());
       final orders = await _orderRepository.getOrders();
       emit(OrderHistoryLoaded(orders));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error('Gagal memuat riwayat order', error: e, stackTrace: stackTrace);
       emit(OrderError(e.toString()));
     }
   }

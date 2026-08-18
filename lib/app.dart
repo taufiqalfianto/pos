@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pos/core/routing/app_router.dart';
 import 'package:pos/core/theme/app_theme.dart';
+import 'package:pos/core/util/responsive_layout.dart';
 import 'package:pos/features/auth/cubit/auth_cubit.dart';
 import 'package:pos/features/product/cubit/product_cubit.dart';
 import 'package:pos/features/product/repository/product_repository.dart';
@@ -73,8 +74,15 @@ class _PosAppState extends State<PosApp> {
 
     return ScreenUtilPlusInit(
       designSize: const Size(393, 852), // iPhone 14/15 base size
-      minTextAdapt: true,
       splitScreenMode: true,
+      // Skala font global mengikuti breakpoint & orientasi, bukan lebar penuh
+      // layar, sehingga teks konsisten di portrait/landscape/tablet.
+      fontSizeResolver: (fontSize, instance) =>
+          fontSize *
+          AppBreakpointResolver.fontScaleFor(
+            instance.screenWidth,
+            instance.screenHeight,
+          ),
       builder: (context, child) {
         return MultiBlocProvider(
           providers: [

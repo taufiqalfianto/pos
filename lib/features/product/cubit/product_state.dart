@@ -22,3 +22,12 @@ class ProductError extends ProductState {
   final String message;
   const ProductError(this.message);
 }
+
+class ProductSyncLoading extends ProductState {}
+
+class ProductSyncSuccess extends ProductState {}
+
+class ProductSyncError extends ProductState {
+  final String message;
+  const ProductSyncError(this.message);
+}

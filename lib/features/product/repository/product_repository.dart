@@ -1,22 +1,15 @@
 import 'dart:async';
-import 'package:dio/dio.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../../../core/helper/app_logger.dart';
 import '../../../core/helper/database_helper.dart';
 import '../data/model/product_model.dart';
-
 import '../data/model/stock_report_model.dart';
 
 class ProductRepository {
-  final Dio _dio;
   final DatabaseHelper _dbHelper;
 
-  // Ganti dengan URL API Anda (gunakan IP lokal jika emulator: 10.0.2.2)
-  final String _baseUrl = 'https://api.example.com/products';
-
-  ProductRepository({Dio? dio})
-    : _dio = dio ?? Dio(),
-      _dbHelper = DatabaseHelper.instance;
+  ProductRepository() : _dbHelper = DatabaseHelper.instance;
 
   // Stream for real-time updates
   final _productUpdateController = StreamController<void>.broadcast();
@@ -84,7 +77,7 @@ class ProductRepository {
           whereArgs: [id],
         );
       } catch (e) {
-        print("Manual stock update sync gagal: $e");
+        AppLogger.error('Manual stock update sync gagal', error: e);
       }
       notifyListeners();
     }
@@ -133,7 +126,7 @@ class ProductRepository {
       );
     } catch (e) {
       // Jika gagal (offline/error), biarkan is_synced = 0
-      print("Sync gagal, data tersimpan lokal: $e");
+      AppLogger.error('Sync gagal, data tersimpan lokal', error: e);
     }
     notifyListeners();
   }
@@ -165,7 +158,7 @@ class ProductRepository {
           whereArgs: [product.id],
         );
       } catch (e) {
-        print("Gagal sync item ${product.name}");
+        AppLogger.error('Gagal sync item ${product.name}', error: e);
       }
     }
     notifyListeners();
@@ -191,7 +184,7 @@ class ProductRepository {
         whereArgs: [product.id],
       );
     } catch (e) {
-      print("Update sync gagal: $e");
+      AppLogger.error('Update sync gagal', error: e);
     }
     notifyListeners();
   }
@@ -205,7 +198,7 @@ class ProductRepository {
     try {
       await Future.delayed(const Duration(milliseconds: 300));
     } catch (e) {
-      print("Delete sync gagal: $e");
+      AppLogger.error('Delete sync gagal', error: e);
     }
     notifyListeners();
   }
@@ -244,7 +237,7 @@ class ProductRepository {
           whereArgs: [id],
         );
       } catch (e) {
-        print("Stock update sync gagal: $e");
+        AppLogger.error('Stock update sync gagal', error: e);
       }
       notifyListeners();
     }

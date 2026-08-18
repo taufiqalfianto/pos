@@ -26,6 +26,41 @@ class AppColors {
   );
 }
 
+/// Design tokens terpusat, diskalakan ScreenUtil terhadap designSize (393 × 852)
+/// sehingga proporsi tetap konsisten di semua ukuran device.
+class AppDimens {
+  // Tinggi tombol
+  static double get buttonHeight => 56.w;
+  static double get buttonHeightSmall => 44.w;
+
+  // Radius
+  static double get radiusSmall => 12.r;
+  static double get radiusMedium => 18.r;
+  static double get radiusLarge => 24.r;
+
+  // Jarak vertikal antar elemen
+  static double get spaceXs => 4.h;
+  static double get spaceSm => 8.h;
+  static double get spaceMd => 16.h;
+  static double get spaceLg => 24.h;
+  static double get spaceXl => 32.h;
+
+  // Padding standar halaman
+  static double get pagePadding => 20.w;
+  static double get cardPadding => 20.w;
+  static double get inputPaddingH => 20.w;
+  static double get inputPaddingV => 16.h;
+
+  // Ukuran font, minTextAdapt=true agar tidak mengecil berlebihan
+  static double get fontCaption => 11.sp;
+  static double get fontBodySm => 13.sp;
+  static double get fontBody => 14.sp;
+  static double get fontSubtitle => 16.sp;
+  static double get fontTitle => 18.sp;
+  static double get fontHeading => 20.sp;
+  static double get fontDisplay => 24.sp;
+}
+
 class AppStyles {
   static BoxDecoration glassDecoration({
     double borderRadius = 24.0,

@@ -2,6 +2,7 @@ import 'package:delightful_toast/delight_toast.dart';
 import 'package:delightful_toast/toast/components/toast_card.dart';
 import 'package:delightful_toast/toast/utils/enums.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/util/responsive_layout.dart';
 
@@ -50,7 +51,7 @@ class ToastHelper {
           message,
           style: TextStyle(
             fontWeight: FontWeight.w700,
-            fontSize: isTablet ? 13 : 14,
+            fontSize: isTablet ? 13.sp : 14.sp,
           ),
         ),
         shadowColor: Colors.black.withValues(alpha: 0.1),

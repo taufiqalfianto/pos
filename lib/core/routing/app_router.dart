@@ -8,6 +8,7 @@ import 'package:pos/features/auth/screen/register_screen.dart';
 import 'package:pos/features/auth/screen/change_password_screen.dart';
 import 'package:pos/features/auth/screen/edit_profile_screen.dart';
 import 'package:pos/features/auth/screen/splash_screen.dart';
+import 'package:pos/core/widgets/main_shell.dart';
 import 'package:pos/features/product/data/model/product_model.dart';
 import 'package:pos/features/product/screen/product_screen.dart';
 import 'package:pos/features/product/screen/edit_product_screen.dart';
@@ -51,17 +52,43 @@ class AppRouter {
           path: '/splash',
           builder: (context, state) => const SplashScreen(),
         ),
-        GoRoute(
-          path: '/',
-          builder: (context, state) => const ProductListScreen(),
-        ),
-        GoRoute(
-          path: '/order',
-          builder: (context, state) => const OrderScreen(),
-        ),
-        GoRoute(
-          path: '/order-history',
-          builder: (context, state) => const OrderHistoryScreen(),
+        StatefulShellRoute.indexedStack(
+          builder: (context, state, navigationShell) =>
+              MainShell(navigationShell: navigationShell),
+          branches: [
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: '/',
+                  builder: (context, state) => const ProductListScreen(),
+                ),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: '/order',
+                  builder: (context, state) => const OrderScreen(),
+                ),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: '/order-history',
+                  builder: (context, state) => const OrderHistoryScreen(),
+                ),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: '/sales-report',
+                  builder: (context, state) => const SalesReportScreen(),
+                ),
+              ],
+            ),
+          ],
         ),
         GoRoute(
           path: '/login',
@@ -114,10 +141,6 @@ class AppRouter {
         GoRoute(
           path: '/categories',
           builder: (context, state) => const CategoryManageScreen(),
-        ),
-        GoRoute(
-          path: '/sales-report',
-          builder: (context, state) => const SalesReportScreen(),
         ),
       ],
     );

@@ -1,15 +1,17 @@
-class ProductModel {
+import 'package:equatable/equatable.dart';
+
+class ProductModel extends Equatable {
   final String id;
   final String name;
   final double price;
   final String imagePath;
   final int stock;
   final String description;
-  final int isSynced; // 0: False, 1: True
+  final int isSynced;
   final String categoryId;
   final String? categoryName;
 
-  ProductModel({
+  const ProductModel({
     required this.id,
     required this.name,
     required this.price,
@@ -21,7 +23,6 @@ class ProductModel {
     this.categoryName,
   });
 
-  // Konversi dari Map (Database/JSON) ke Object
   factory ProductModel.fromMap(
     Map<String, dynamic> map, {
     String? categoryName,
@@ -29,7 +30,7 @@ class ProductModel {
     return ProductModel(
       id: map['id'],
       name: map['name'],
-      price: map['price'],
+      price: (map['price'] as num).toDouble(),
       imagePath: map['image_path'] ?? '',
       stock: map['stock'] ?? 0,
       description: map['description'] ?? '',
@@ -39,7 +40,6 @@ class ProductModel {
     );
   }
 
-  // Konversi dari Object ke Map (untuk Database)
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -53,7 +53,6 @@ class ProductModel {
     };
   }
 
-  // Konversi ke JSON untuk API (Dio)
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -88,4 +87,17 @@ class ProductModel {
       categoryName: categoryName ?? this.categoryName,
     );
   }
+
+  @override
+  List<Object?> get props => [
+    id,
+    name,
+    price,
+    imagePath,
+    stock,
+    description,
+    isSynced,
+    categoryId,
+    categoryName,
+  ];
 }

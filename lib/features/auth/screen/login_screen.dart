@@ -7,6 +7,7 @@ import 'package:pos/core/helper/toast_helper.dart';
 import '../../../core/util/responsive_layout.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -62,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             context,
                             cardPadding: EdgeInsets.all(isTablet ? 24.r : 28.r),
                             logoSize: isTablet ? 76 : 84,
-                            titleFontSize: isTablet ? 24 : 28,
+                            titleFontSize: isTablet ? 24.sp : 28.sp,
                           ),
                         ),
                       ),
@@ -262,10 +263,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderRadius: BorderRadius.circular(isTablet ? 16.r : 18.r),
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   'Masuk Sekarang',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1,
                   ),

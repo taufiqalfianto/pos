@@ -6,6 +6,7 @@ import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/currency_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
 import '../../order/cubit/sales_report_cubit.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class SalesReportScreen extends StatefulWidget {
   const SalesReportScreen({super.key});
@@ -71,11 +72,11 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                               children: [
                                 _buildSummaryGrid(context, state),
                                 const SizedBox(height: 32),
-                                const Text(
+                                Text(
                                   'Penjualan Per Kategori',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 18,
+                                    fontSize: 18.sp,
                                   ),
                                 ),
                                 const SizedBox(height: 16),
@@ -89,14 +90,20 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                                       'Total Penjualan:',
                                       style: AppStyles.subtitleStyle,
                                     ),
-                                    Text(
-                                      CurrencyHelper.formatIdr(
-                                        state.totalRevenue,
-                                      ),
-                                      style: TextStyle(
-                                        fontSize: 24.sp,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primary,
+                                    Flexible(
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        alignment: Alignment.centerRight,
+                                        child: Text(
+                                          CurrencyHelper.formatIdr(
+                                            state.totalRevenue,
+                                          ),
+                                          style: TextStyle(
+                                            fontSize: 24.sp,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -126,7 +133,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
         : DateFormat('MMMM yyyy', 'id');
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -170,10 +177,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
               ),
               Text(
                 dateFormat.format(state.selectedDate),
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
               ),
               IconButton(
                 onPressed: () => _nextDate(state),
@@ -224,33 +228,30 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
     Color color,
   ) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20.w),
       decoration: AppStyles.glassDecoration(borderRadius: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(12.r),
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: Icon(icon, color: color, size: 24.r),
           ),
           const Spacer(),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-            ),
+            style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 4),
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
               value,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp),
             ),
           ),
         ],
@@ -272,22 +273,27 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
       itemBuilder: (context, index) {
         final category = categorySales[index];
         return Container(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(20.w),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(20.r),
             border: Border.all(color: Colors.black.withOpacity(0.05)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                category['category_name'],
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
+              Expanded(
+                child: Text(
+                  category['category_name'],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15.sp,
+                  ),
                 ),
               ),
+              const SizedBox(width: 12),
               Text(
                 CurrencyHelper.formatIdr(
                   (category['revenue'] as num).toDouble(),

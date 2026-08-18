@@ -10,6 +10,7 @@ import 'package:pos/core/helper/file_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -143,9 +144,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   child:
                                       _pickedImagePath == null ||
                                           _pickedImagePath!.isEmpty
-                                      ? const Icon(
+                                      ? Icon(
                                           Icons.person_rounded,
-                                          size: 80,
+                                          size: 80.r,
                                           color: AppColors.primary,
                                         )
                                       : null,
@@ -155,7 +156,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 bottom: 0,
                                 right: 0,
                                 child: Container(
-                                  padding: const EdgeInsets.all(8),
+                                  padding: EdgeInsets.all(8.w),
                                   decoration: BoxDecoration(
                                     color: AppColors.primary,
                                     shape: BoxShape.circle,
@@ -164,9 +165,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       width: isTablet ? 2 : 3,
                                     ),
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.camera_alt_rounded,
-                                    size: 18,
+                                    size: 18.r,
                                     color: Colors.white,
                                   ),
                                 ),
@@ -250,9 +251,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           return Text(
                             'App Version $version ($buildNumber)',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppColors.textSecondary,
-                              fontSize: 12,
+                              fontSize: 12.sp,
                               fontWeight: FontWeight.w500,
                             ),
                           );
@@ -278,14 +279,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           height: 20,
           decoration: BoxDecoration(
             color: AppColors.primary,
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(2.r),
           ),
         ),
         const SizedBox(width: 12),
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 18,
+          style: TextStyle(
+            fontSize: 18.sp,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),

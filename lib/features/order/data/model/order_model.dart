@@ -15,6 +15,19 @@ class OrderItemModel extends Equatable {
 
   double get subtotal => price * quantity;
 
+  OrderItemModel copyWith({
+    String? productName,
+    double? price,
+    int? quantity,
+  }) {
+    return OrderItemModel(
+      productId: productId,
+      productName: productName ?? this.productName,
+      price: price ?? this.price,
+      quantity: quantity ?? this.quantity,
+    );
+  }
+
   Map<String, dynamic> toMap(String orderId) {
     return {
       'order_id': orderId,
@@ -29,7 +42,7 @@ class OrderItemModel extends Equatable {
     return OrderItemModel(
       productId: map['product_id'],
       productName: map['product_name'],
-      price: map['price'],
+      price: (map['price'] as num).toDouble(),
       quantity: map['quantity'],
     );
   }

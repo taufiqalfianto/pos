@@ -8,6 +8,7 @@ import '../cubit/stock_report_cubit.dart';
 import '../data/model/product_model.dart';
 import '../data/model/stock_report_model.dart';
 import '../cubit/product_cubit.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class AddStockReportScreen extends StatefulWidget {
   final ProductModel product;
@@ -77,11 +78,11 @@ class _AddStockReportScreenState extends State<AddStockReportScreen> {
                       children: [
                         _buildProductInfo(),
                         SizedBox(height: isLandscape ? 24 : 32),
-                        const Text(
+                        Text(
                           'Berapa jumlah stok fisik yang tersedia?',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: 16.sp,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -103,11 +104,11 @@ class _AddStockReportScreenState extends State<AddStockReportScreen> {
                           },
                         ),
                         const SizedBox(height: 24),
-                        const Text(
+                        Text(
                           'Catatan (Opsional)',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: 16.sp,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -122,12 +123,17 @@ class _AddStockReportScreenState extends State<AddStockReportScreen> {
                         ),
                         const SizedBox(height: 48),
                         SizedBox(
-                          height: 60,
+                          height: ResponsiveLayout.adaptiveValue(
+                            context,
+                            portrait: 60,
+                            landscape: 52,
+                            tablet: 52,
+                          ),
                           child: FilledButton(
                             onPressed: _submit,
                             style: FilledButton.styleFrom(
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: BorderRadius.circular(20.r),
                               ),
                             ),
                             child: const Text(
@@ -153,10 +159,10 @@ class _AddStockReportScreenState extends State<AddStockReportScreen> {
 
   Widget _buildProductInfo() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
         color: AppColors.primary.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(24.r),
       ),
       child: Row(
         children: [
@@ -172,8 +178,8 @@ class _AddStockReportScreenState extends State<AddStockReportScreen> {
                 ),
                 Text(
                   'Stok sistem saat ini: ${widget.product.stock}',
-                  style: const TextStyle(
-                    fontSize: 12,
+                  style: TextStyle(
+                    fontSize: 12.sp,
                     color: AppColors.textSecondary,
                   ),
                 ),

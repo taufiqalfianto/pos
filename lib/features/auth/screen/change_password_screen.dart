@@ -7,6 +7,7 @@ import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -63,7 +64,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                               Row(
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.all(12),
+                                    padding: EdgeInsets.all(12.w),
                                     decoration: BoxDecoration(
                                       color: AppColors.primary.withValues(
                                         alpha: 0.1,
@@ -147,7 +148,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                               ),
                               const SizedBox(height: 48),
                               SizedBox(
-                                height: 60,
+                                height: ResponsiveLayout.adaptiveValue(
+                                  context,
+                                  portrait: 60,
+                                  landscape: 52,
+                                  tablet: 52,
+                                ),
                                 child: FilledButton(
                                   onPressed: () {
                                     if (_formKey.currentState!.validate()) {
@@ -164,7 +170,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                   },
                                   style: FilledButton.styleFrom(
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
+                                      borderRadius: BorderRadius.circular(20.r),
                                     ),
                                   ),
                                   child: const Text(

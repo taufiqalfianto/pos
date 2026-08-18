@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:pos/core/helper/app_logger.dart';
 import 'package:pos/features/product/data/model/product_model.dart';
 
 import '../repository/product_repository.dart';
@@ -11,15 +12,13 @@ class ProductCubit extends Cubit<ProductState> {
   final ProductRepository _repository;
   List<ProductModel> _allProducts = [];
   StreamSubscription? _productSubscription;
-  bool _isDisposed = false;
-
   ProductCubit(this._repository) : super(ProductInitial()) {
     _subscribeToProductUpdates();
   }
 
   void _subscribeToProductUpdates() {
     _productSubscription = _repository.productUpdates.listen((_) {
-      if (!_isDisposed) {
+      if (!isClosed) {
         loadProducts();
       }
     });
@@ -31,7 +30,8 @@ class ProductCubit extends Cubit<ProductState> {
       final products = await _repository.getProducts();
       _allProducts = products;
       emit(ProductLoaded(products));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error('Gagal memuat produk', error: e, stackTrace: stackTrace);
       emit(ProductError("Gagal memuat produk: $e"));
     }
   }
@@ -56,8 +56,9 @@ class ProductCubit extends Cubit<ProductState> {
     try {
       await _repository.addProduct(product);
       loadProducts(); // Reload list after add
-    } catch (e) {
-      emit(ProductError("Gagal menambah produk"));
+    } catch (e, stackTrace) {
+      AppLogger.error('Gagal menambah produk', error: e, stackTrace: stackTrace);
+      emit(ProductError("Gagal menambah produk: $e"));
     }
   }
 
@@ -65,8 +66,9 @@ class ProductCubit extends Cubit<ProductState> {
     try {
       await _repository.updateProduct(product);
       loadProducts(); // Reload list after update
-    } catch (e) {
-      emit(ProductError("Gagal memperbarui produk"));
+    } catch (e, stackTrace) {
+      AppLogger.error('Gagal memperbarui produk', error: e, stackTrace: stackTrace);
+      emit(ProductError("Gagal memperbarui produk: $e"));
     }
   }
 
@@ -74,25 +76,28 @@ class ProductCubit extends Cubit<ProductState> {
     try {
       await _repository.deleteProduct(id);
       loadProducts(); // Reload list after delete
-    } catch (e) {
-      emit(ProductError("Gagal menghapus produk"));
+    } catch (e, stackTrace) {
+      AppLogger.error('Gagal menghapus produk', error: e, stackTrace: stackTrace);
+      emit(ProductError("Gagal menghapus produk: $e"));
     }
   }
 
   Future<void> syncData() async {
-    // Kita biarkan state tetap loaded, tapi beri notifikasi atau loading overlay di UI
-    // Disini kita refresh list setelah sync selesai
+    emit(ProductSyncLoading());
     try {
       await _repository.syncPendingData();
-      loadProducts();
-    } catch (e) {
-      // Silent fail or show snackbar in UI
+      if (isClosed) return;
+      emit(ProductSyncSuccess());
+      await loadProducts();
+    } catch (e, stackTrace) {
+      AppLogger.error('Sync data gagal', error: e, stackTrace: stackTrace);
+      if (isClosed) return;
+      emit(ProductSyncError('Gagal sinkronisasi data: $e'));
     }
   }
 
   @override
   Future<void> close() {
-    _isDisposed = true;
     _productSubscription?.cancel();
     return super.close();
   }

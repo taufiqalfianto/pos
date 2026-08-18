@@ -2,6 +2,43 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+/// Breakpoint sesuai dokumen teknis responsif:
+///
+/// | Class              | Lebar        |
+/// |--------------------|--------------|
+/// | mobileSmall        | < 360px      |
+/// | mobile             | 360px–599px  |
+/// | tabletPortrait     | 600px–839px  |
+/// | tabletLandscape    | >= 840px     |
+enum AppBreakpoint { mobileSmall, mobile, tabletPortrait, tabletLandscape }
+
+/// Resolver breakpoint murni dari lebar (tanpa BuildContext), mudah di-test.
+abstract final class AppBreakpointResolver {
+  static const double mobileMin = 360;
+  static const double tabletMin = 600;
+  static const double tabletLandscapeMin = 840;
+
+  static AppBreakpoint fromWidth(double width) {
+    if (width < mobileMin) return AppBreakpoint.mobileSmall;
+    if (width < tabletMin) return AppBreakpoint.mobile;
+    if (width < tabletLandscapeMin) return AppBreakpoint.tabletPortrait;
+    return AppBreakpoint.tabletLandscape;
+  }
+
+  /// Faktor skala font global per breakpoint & orientasi, supaya semua teks
+  /// (`.sp`, tema, tombol, drawer) bergeser bersama-sama saat layar berubah:
+  /// mobile portrait 1.0 · mobile landscape 0.9 · tablet portrait 1.0 ·
+  /// tablet landscape / wide 0.95 · desktop 1.0.
+  static double fontScaleFor(double width, double height) {
+    if (width >= 1200) return 1.0;
+    if (width >= tabletLandscapeMin) return 0.95;
+    // Layar lebar & pendek (lebar > tinggi) = ponsel landscape, kecilkan font.
+    if (width >= tabletMin && width <= height) return 1.0;
+    if (width > height) return 0.9;
+    return 1.0;
+  }
+}
+
 class ResponsiveCondition {
   final MediaQueryData _mediaQuery;
 
@@ -23,15 +60,32 @@ class ResponsiveCondition {
 
   double get height => size.height;
 
-  bool get isCompactWidth => width < 600;
+  /// Breakpoint sesuai dokumen teknis (360/600/840).
+  AppBreakpoint get breakpoint => AppBreakpointResolver.fromWidth(width);
 
-  bool get isMediumWidth => width >= 600 && width < 900;
+  /// Mobile (< 600px) — portrait maupun landscape ponsel.
+  bool get isMobile => width < AppBreakpointResolver.tabletMin;
 
-  bool get isWideWidth => width >= 900;
+  /// Tablet mulai 600px (portrait & foldable) hingga layar besar.
+  bool get isTablet => width >= AppBreakpointResolver.tabletMin;
 
-  bool get isTablet => width >= 700 && width < 1200;
+  /// Tablet landscape / layar lebar (>= 840px).
+  bool get isTabletLandscape =>
+      width >= AppBreakpointResolver.tabletLandscapeMin;
+
+  /// NavigationRail dipakai mulai 840px.
+  bool get useRail => isTabletLandscape;
 
   bool get isDesktop => width >= 1200;
+
+  // --- Alias kompatibilitas ---
+  bool get isCompactWidth => width < AppBreakpointResolver.tabletMin;
+
+  bool get isMediumWidth =>
+      width >= AppBreakpointResolver.tabletMin &&
+      width < AppBreakpointResolver.tabletLandscapeMin;
+
+  bool get isWideWidth => width >= AppBreakpointResolver.tabletLandscapeMin;
 }
 
 class ResponsiveLayout {
@@ -40,12 +94,21 @@ class ResponsiveLayout {
   }
 
   static bool isTablet(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    return width >= 700 && width < 1200;
+    return MediaQuery.of(context).size.width >= AppBreakpointResolver.tabletMin;
   }
 
   static bool isDesktop(BuildContext context) {
     return MediaQuery.of(context).size.width >= 1200;
+  }
+
+  /// Tablet landscape (>= 840px) — NavigationRail.
+  static bool useRail(BuildContext context) {
+    return MediaQuery.of(context).size.width >=
+        AppBreakpointResolver.tabletLandscapeMin;
+  }
+
+  static AppBreakpoint breakpointOf(BuildContext context) {
+    return AppBreakpointResolver.fromWidth(MediaQuery.of(context).size.width);
   }
 
   static ResponsiveCondition of(BuildContext context) {
@@ -62,8 +125,8 @@ class ResponsiveLayout {
   }) {
     final width = MediaQuery.of(context).size.width;
     if (width >= 1200) return desktop;
-    if (width >= 900) return wide;
-    if (width >= 700) return tablet;
+    if (width >= AppBreakpointResolver.tabletLandscapeMin) return wide;
+    if (width >= AppBreakpointResolver.tabletMin) return tablet;
     return isLandscape(context) ? landscape : portrait;
   }
 
@@ -77,8 +140,12 @@ class ResponsiveLayout {
   }) {
     final width = MediaQuery.of(context).size.width;
     if (width >= 1200) return desktop ?? wide ?? tablet ?? portrait;
-    if (width >= 900) return wide ?? tablet ?? landscape ?? portrait;
-    if (width >= 700) return tablet ?? landscape ?? portrait;
+    if (width >= AppBreakpointResolver.tabletLandscapeMin) {
+      return wide ?? tablet ?? landscape ?? portrait;
+    }
+    if (width >= AppBreakpointResolver.tabletMin) {
+      return tablet ?? landscape ?? portrait;
+    }
     return isLandscape(context) ? (landscape ?? portrait) : portrait;
   }
 
@@ -123,7 +190,7 @@ class ResponsiveLayout {
     );
   }
 
-  static double radius(
+  static double height(
     BuildContext context,
     double portrait, {
     double? landscape,
@@ -159,7 +226,7 @@ class ResponsiveLayout {
         vertical: wideVertical,
       );
     }
-    if (width >= 700) {
+    if (width >= AppBreakpointResolver.tabletMin) {
       return EdgeInsets.symmetric(
         horizontal: tabletHorizontal,
         vertical: tabletVertical,
@@ -183,8 +250,12 @@ class ResponsiveLayout {
   }) {
     final width = MediaQuery.of(context).size.width;
     if (width >= 1200) return desktop ?? wide ?? tablet ?? portrait;
-    if (width >= 900) return wide ?? tablet ?? landscape ?? portrait;
-    if (width >= 700) return tablet ?? landscape ?? portrait;
+    if (width >= AppBreakpointResolver.tabletLandscapeMin) {
+      return wide ?? tablet ?? landscape ?? portrait;
+    }
+    if (width >= AppBreakpointResolver.tabletMin) {
+      return tablet ?? landscape ?? portrait;
+    }
     return isLandscape(context) ? (landscape ?? portrait) : portrait;
   }
 
@@ -203,7 +274,7 @@ class ResponsiveLayout {
     if (width >= 1200) {
       return EdgeInsets.symmetric(horizontal: wide, vertical: wideVertical);
     }
-    if (width >= 700) {
+    if (width >= AppBreakpointResolver.tabletMin) {
       return EdgeInsets.symmetric(horizontal: tablet, vertical: tabletVertical);
     }
     return EdgeInsets.symmetric(
@@ -218,7 +289,7 @@ class ResponsiveLayout {
     double tabletMaxWidth = 960,
   }) {
     final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth >= 700 && screenWidth < 1200) {
+    if (screenWidth >= AppBreakpointResolver.tabletMin && screenWidth < 1200) {
       return math.min(screenWidth, tabletMaxWidth);
     }
     return math.min(screenWidth, maxWidth);
@@ -234,8 +305,8 @@ class ResponsiveLayout {
   }) {
     final width = MediaQuery.of(context).size.width;
     if (width >= 1200) return desktop;
-    if (width >= 900) return wide;
-    if (width >= 700) return tablet;
+    if (width >= AppBreakpointResolver.tabletLandscapeMin) return wide;
+    if (width >= AppBreakpointResolver.tabletMin) return tablet;
     if (isLandscape(context)) return landscape;
     return portrait;
   }

@@ -7,6 +7,7 @@ import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/util/responsive_layout.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -108,9 +109,9 @@ class _SplashScreenState extends State<SplashScreen>
                   shape: BoxShape.circle,
                   boxShadow: AppStyles.premiumShadow,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.shopping_cart_checkout_rounded,
-                  size: 72,
+                  size: 72.r,
                   color: AppColors.primary,
                 ),
               ),
@@ -191,9 +192,9 @@ class _SplashScreenState extends State<SplashScreen>
                           shape: BoxShape.circle,
                           boxShadow: AppStyles.premiumShadow,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.shopping_cart_checkout_rounded,
-                          size: 56,
+                          size: 56.r,
                           color: AppColors.primary,
                         ),
                       ),

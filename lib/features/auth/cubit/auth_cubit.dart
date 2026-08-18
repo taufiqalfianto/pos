@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/helper/app_logger.dart';
 import '../data/model/user_model.dart';
 import '../repository/auth_repository.dart';
 import 'auth_state.dart';
@@ -19,10 +20,10 @@ class AuthCubit extends Cubit<AuthState> {
       } else {
         emit(Unauthenticated());
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       // Don't emit AuthError for silent checks to avoid toast on startup
       // and log the error for debugging.
-      print('CheckAuth Error: $e');
+      AppLogger.error('CheckAuth gagal', error: e, stackTrace: stackTrace);
       emit(Unauthenticated());
     }
   }
@@ -36,7 +37,8 @@ class AuthCubit extends Cubit<AuthState> {
       } else {
         emit(const AuthError('Username atau password salah'));
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error('Login gagal', error: e, stackTrace: stackTrace);
       emit(AuthError(e.toString()));
     }
   }
@@ -47,7 +49,8 @@ class AuthCubit extends Cubit<AuthState> {
       await _authRepository.register(user);
       await _authRepository.saveSession(user.id); // Persist session
       emit(Authenticated(user)); // Auto login after register for UX
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error('Register gagal', error: e, stackTrace: stackTrace);
       emit(AuthError(e.toString()));
     }
   }
@@ -63,7 +66,8 @@ class AuthCubit extends Cubit<AuthState> {
           newPassword,
         );
         emit(Authenticated(currentState.user)); // Keep authenticated
-      } catch (e) {
+      } catch (e, stackTrace) {
+        AppLogger.error('Ganti password gagal', error: e, stackTrace: stackTrace);
         emit(AuthError(e.toString()));
         emit(Authenticated(currentState.user)); // Restore state after error
       }
@@ -75,14 +79,21 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       await _authRepository.updateProfile(user);
       emit(Authenticated(user)); // Update with new user data
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error('Update profil gagal', error: e, stackTrace: stackTrace);
       emit(AuthError(e.toString()));
     }
   }
 
   Future<void> logout() async {
     emit(AuthLoading());
-    await _authRepository.logout();
-    emit(Unauthenticated());
+    try {
+      await _authRepository.logout();
+      emit(Unauthenticated());
+    } catch (e, stackTrace) {
+      AppLogger.error('Logout gagal', error: e, stackTrace: stackTrace);
+      emit(AuthError('Gagal logout. Silakan coba lagi.'));
+      emit(Unauthenticated());
+    }
   }
 }

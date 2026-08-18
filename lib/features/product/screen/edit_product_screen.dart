@@ -12,6 +12,7 @@ import 'package:pos/core/helper/file_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
 import '../cubit/product_cubit.dart';
 import '../cubit/category_cubit.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class EditProductScreen extends StatefulWidget {
   final ProductModel product;
@@ -265,7 +266,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   Text(
                     "Ketuk untuk memilih",
                     style: isLandscape || isTablet
-                        ? AppStyles.subtitleStyle.copyWith(fontSize: 12)
+                        ? AppStyles.subtitleStyle.copyWith(fontSize: 12.sp)
                         : AppStyles.subtitleStyle,
                   ),
                 ],
@@ -374,12 +375,17 @@ class _EditProductScreenState extends State<EditProductScreen> {
           ),
           const SizedBox(height: 40),
           SizedBox(
-            height: 60,
+            height: ResponsiveLayout.adaptiveValue(
+              context,
+              portrait: 60,
+              landscape: 52,
+              tablet: 52,
+            ),
             child: FilledButton(
               onPressed: () => _saveProduct(),
               style: FilledButton.styleFrom(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(20.r),
                 ),
               ),
               child: const Text(
@@ -401,14 +407,14 @@ class _EditProductScreenState extends State<EditProductScreen> {
           height: 24,
           decoration: BoxDecoration(
             color: AppColors.primary,
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(2.r),
           ),
         ),
         const SizedBox(width: 12),
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 18,
+          style: TextStyle(
+            fontSize: 18.sp,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),

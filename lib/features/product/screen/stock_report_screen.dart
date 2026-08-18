@@ -6,6 +6,7 @@ import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/util/responsive_layout.dart';
 import '../cubit/stock_report_cubit.dart';
 import '../data/model/product_model.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class StockReportScreen extends StatefulWidget {
   final ProductModel product;
@@ -30,13 +31,19 @@ class _StockReportScreenState extends State<StockReportScreen> {
       body: Column(
         children: [
           _buildSummaryCard(),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: isLandscape ? 20 : 24.w,
+              vertical: isLandscape ? 10 : 16.h,
+            ),
             child: Row(
               children: [
                 Text(
                   'Riwayat Penyesuaian',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: isLandscape ? 14.sp : 16.sp,
+                  ),
                 ),
               ],
             ),
@@ -53,7 +60,12 @@ class _StockReportScreenState extends State<StockReportScreen> {
             vertical: isLandscape ? 16 : 24,
           ),
           child: SizedBox(
-            height: 60,
+            height: ResponsiveLayout.adaptiveValue(
+              context,
+              portrait: 60,
+              landscape: 52,
+              tablet: 52,
+            ),
             child: FilledButton.icon(
               onPressed: () =>
                   context.push('/add-stock-report', extra: widget.product),
@@ -64,7 +76,7 @@ class _StockReportScreenState extends State<StockReportScreen> {
               ),
               style: FilledButton.styleFrom(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(20.r),
                 ),
               ),
             ),
@@ -75,34 +87,37 @@ class _StockReportScreenState extends State<StockReportScreen> {
   }
 
   Widget _buildSummaryCard() {
+    final isLandscape = context.isLandscape;
     return Container(
-      margin: const EdgeInsets.all(24),
-      padding: const EdgeInsets.all(24),
-      decoration: AppStyles.glassDecoration(borderRadius: 32),
+      margin: EdgeInsets.all(isLandscape ? 16 : 24.w),
+      padding: EdgeInsets.all(isLandscape ? 14 : 24.w),
+      decoration: AppStyles.glassDecoration(
+        borderRadius: isLandscape ? 24 : 32,
+      ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(isLandscape ? 10 : 16.w),
             decoration: BoxDecoration(
               color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(isLandscape ? 14 : 20.r),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.inventory_2_rounded,
               color: AppColors.primary,
-              size: 32,
+              size: isLandscape ? 26 : 32.r,
             ),
           ),
-          const SizedBox(width: 20),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   widget.product.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 18,
+                    fontSize: isLandscape ? 15.sp : 18.sp,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -131,7 +146,7 @@ class _StockReportScreenState extends State<StockReportScreen> {
                 children: [
                   Icon(
                     Icons.history_rounded,
-                    size: 48,
+                    size: 48.r,
                     color: AppColors.textSecondary.withOpacity(0.2),
                   ),
                   const SizedBox(height: 16),
@@ -164,10 +179,10 @@ class _StockReportScreenState extends State<StockReportScreen> {
                           : AppColors.error;
 
                       return Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.all(16.w),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(20.r),
                           border: Border.all(
                             color: Colors.black.withOpacity(0.05),
                           ),
@@ -182,26 +197,26 @@ class _StockReportScreenState extends State<StockReportScreen> {
                                   DateFormat(
                                     'dd MMM yyyy, HH:mm',
                                   ).format(report.createdAt),
-                                  style: const TextStyle(
-                                    fontSize: 12,
+                                  style: TextStyle(
+                                    fontSize: 12.sp,
                                     color: AppColors.textSecondary,
                                   ),
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8.w,
+                                    vertical: 4.h,
                                   ),
                                   decoration: BoxDecoration(
                                     color: adjColor.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(8.r),
                                   ),
                                   child: Text(
                                     adjText,
                                     style: TextStyle(
                                       color: adjColor,
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 12,
+                                      fontSize: 12.sp,
                                     ),
                                   ),
                                 ),
@@ -219,8 +234,8 @@ class _StockReportScreenState extends State<StockReportScreen> {
                               const Divider(height: 24),
                               Text(
                                 report.note,
-                                style: const TextStyle(
-                                  fontSize: 13,
+                                style: TextStyle(
+                                  fontSize: 13.sp,
                                   color: AppColors.textSecondary,
                                   fontStyle: FontStyle.italic,
                                 ),
@@ -247,11 +262,11 @@ class _StockReportScreenState extends State<StockReportScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+          style: TextStyle(fontSize: 10.sp, color: AppColors.textSecondary),
         ),
         Text(
           value,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
         ),
       ],
     );

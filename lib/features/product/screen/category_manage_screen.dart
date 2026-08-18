@@ -6,6 +6,7 @@ import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/util/modern_dialog.dart';
 import 'package:pos/core/util/responsive_layout.dart';
 import '../cubit/category_cubit.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class CategoryManageScreen extends StatefulWidget {
   const CategoryManageScreen({super.key});
@@ -73,7 +74,7 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                   children: [
                     Icon(
                       Icons.category_outlined,
-                      size: 64,
+                      size: 64.r,
                       color: AppColors.textSecondary.withOpacity(0.2),
                     ),
                     const SizedBox(height: 16),
@@ -101,10 +102,10 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                         final isGeneral = category.id == 'general';
 
                         return Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: EdgeInsets.all(16.w),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(20.r),
                             border: Border.all(
                               color: Colors.black.withOpacity(0.05),
                             ),
@@ -112,10 +113,10 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                           child: Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(12),
+                                padding: EdgeInsets.all(12.w),
                                 decoration: BoxDecoration(
                                   color: AppColors.primary.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(12.r),
                                 ),
                                 child: const Icon(
                                   Icons.folder_open_rounded,
@@ -126,9 +127,9 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                               Expanded(
                                 child: Text(
                                   category.name,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 16,
+                                    fontSize: 16.sp,
                                   ),
                                 ),
                               ),

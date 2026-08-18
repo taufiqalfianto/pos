@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import '../cubit/auth_cubit.dart';
 import '../data/model/user_model.dart';
 import '../cubit/auth_state.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -69,7 +70,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             context,
                             cardPadding: EdgeInsets.all(isTablet ? 24 : 28),
                             iconSize: isTablet ? 40 : 44,
-                            titleFontSize: isTablet ? 24 : 28,
+                            titleFontSize: isTablet ? 24.sp : 28.sp,
                           ),
                         ),
                       ),
@@ -94,7 +95,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           context,
           cardPadding: EdgeInsets.all(isTablet ? 28 : 32),
           iconSize: isTablet ? 44 : 48,
-          titleFontSize: isTablet ? 28 : 32,
+          titleFontSize: isTablet ? 28.sp : 32.sp,
         ),
       ),
     );
@@ -116,9 +117,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               shape: BoxShape.circle,
               boxShadow: AppStyles.premiumShadow,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.person_add_rounded,
-              size: 48,
+              size: 48.r,
               color: AppColors.primary,
             ),
           ),
@@ -264,10 +265,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     borderRadius: BorderRadius.circular(isTablet ? 16 : 20),
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   'DAFTAR',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1,
                   ),

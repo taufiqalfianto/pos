@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
+import 'app_logger.dart';
 
 class FileHelper {
   static String? _basePath;
@@ -33,7 +34,7 @@ class FileHelper {
       // Return ONLY the filename for relative storage
       return fileName;
     } catch (e) {
-      print('Error saving image permanently: $e');
+      AppLogger.error('Error saving image permanently', error: e);
       return temporaryPath;
     }
   }

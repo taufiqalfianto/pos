@@ -14,6 +14,7 @@ import '../cubit/product_cubit.dart';
 
 import '../cubit/category_cubit.dart';
 import '../data/model/category_model.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -138,9 +139,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
           backgroundColor: Colors.transparent,
           builder: (_) => Container(
             padding: EdgeInsets.all(isTablet ? 20 : 24),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(32.r)),
             ),
             child: SafeArea(
               child: Column(
@@ -149,14 +150,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   Text(
                     'Pilih Foto Produk',
                     style: TextStyle(
-                      fontSize: isTablet ? 16 : 18,
+                      fontSize: isTablet ? 16.sp : 18.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   SizedBox(height: isTablet ? 16 : 20),
                   ListTile(
                     leading: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: EdgeInsets.all(8.w),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
@@ -175,13 +176,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       _pickImage(ImageSource.camera);
                     },
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(16.r),
                     ),
                   ),
                   const SizedBox(height: 8),
                   ListTile(
                     leading: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: EdgeInsets.all(8.w),
                       decoration: BoxDecoration(
                         color: AppColors.accent.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
@@ -200,7 +201,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       _pickImage(ImageSource.gallery);
                     },
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(16.r),
                     ),
                   ),
                 ],
@@ -249,7 +250,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   Text(
                     "Ketuk untuk memilih",
                     style: isLandscape || isTablet
-                        ? AppStyles.subtitleStyle.copyWith(fontSize: 12)
+                        ? AppStyles.subtitleStyle.copyWith(fontSize: 12.sp)
                         : AppStyles.subtitleStyle,
                   ),
                 ],
@@ -358,12 +359,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
           ),
           const SizedBox(height: 40),
           SizedBox(
-            height: 60,
+            height: ResponsiveLayout.adaptiveValue(
+              context,
+              portrait: 60,
+              landscape: 52,
+              tablet: 52,
+            ),
             child: FilledButton(
               onPressed: () => _saveProduct(),
               style: FilledButton.styleFrom(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(20.r),
                 ),
               ),
               child: const Text(
@@ -385,14 +391,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
           height: 24,
           decoration: BoxDecoration(
             color: AppColors.primary,
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(2.r),
           ),
         ),
         const SizedBox(width: 12),
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 18,
+          style: TextStyle(
+            fontSize: 18.sp,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),

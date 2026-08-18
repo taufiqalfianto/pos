@@ -13,6 +13,7 @@ import 'package:pos/features/product/data/model/product_model.dart';
 import '../cubit/product_cubit.dart';
 import '../../auth/cubit/auth_cubit.dart';
 import '../../auth/cubit/auth_state.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
@@ -102,7 +103,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               foregroundColor: Colors.white,
 
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(20.r),
               ),
               child: const Icon(Icons.add_rounded),
             )
@@ -116,7 +117,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               ),
               icon: const Icon(Icons.add_rounded),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(20.r),
               ),
             ),
     );
@@ -253,10 +254,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Widget _buildPremiumDrawer(BuildContext context) {
     return Drawer(
       backgroundColor: AppColors.background,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
-          topRight: Radius.circular(32),
-          bottomRight: Radius.circular(32),
+          topRight: Radius.circular(32.r),
+          bottomRight: Radius.circular(32.r),
         ),
       ),
       child: ListView(
@@ -274,10 +275,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
               return Container(
                 padding: const EdgeInsets.fromLTRB(24, 80, 24, 40),
                 width: double.infinity,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.primary,
                   borderRadius: BorderRadius.only(
-                    bottomRight: Radius.circular(40),
+                    bottomRight: Radius.circular(40.r),
                   ),
                 ),
                 child: Column(
@@ -290,9 +291,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           ? FileImage(File(FileHelper.getFullPath(imagePath)))
                           : null,
                       child: imagePath.isEmpty
-                          ? const Icon(
+                          ? Icon(
                               Icons.person_rounded,
-                              size: 40,
+                              size: 40.r,
                               color: AppColors.primary,
                             )
                           : null,
@@ -300,9 +301,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     const SizedBox(height: 16),
                     Text(
                       name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
-                        fontSize: 20,
+                        fontSize: 20.sp,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -310,7 +311,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       username,
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.8),
-                        fontSize: 14,
+                        fontSize: 14.sp,
                       ),
                     ),
                   ],
@@ -329,15 +330,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
             icon: Icons.shopping_cart_rounded,
             title: 'Transaksi (Kasir)',
             accentColor: AppColors.success,
-            onTap: () => {Navigator.pop(context), context.push('/order')},
+            onTap: () => {Navigator.pop(context), context.go('/order')},
           ),
           _DrawerItem(
             icon: Icons.receipt_long_rounded,
             title: 'Riwayat Transaksi',
-            onTap: () => {
-              Navigator.pop(context),
-              context.push('/order-history'),
-            },
+            onTap: () => {Navigator.pop(context), context.go('/order-history')},
           ),
           const Divider(indent: 24, endIndent: 24, height: 40),
           _DrawerItem(
@@ -348,10 +346,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           _DrawerItem(
             icon: Icons.analytics_rounded,
             title: 'Laporan Penjualan',
-            onTap: () => {
-              Navigator.pop(context),
-              context.push('/sales-report'),
-            },
+            onTap: () => {Navigator.pop(context), context.go('/sales-report')},
           ),
           const Divider(indent: 24, endIndent: 24, height: 40),
           _DrawerItem(
@@ -402,8 +397,8 @@ class _PremiumProductCard extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(24),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(24.r),
                     ),
                     child: product.imagePath.isNotEmpty
                         ? Image.file(
@@ -414,9 +409,9 @@ class _PremiumProductCard extends StatelessWidget {
                                 color: AppColors.primary.withValues(
                                   alpha: 0.05,
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.shopping_bag_rounded,
-                                  size: 40,
+                                  size: 40.r,
                                   color: AppColors.primary,
                                 ),
                               );
@@ -424,9 +419,9 @@ class _PremiumProductCard extends StatelessWidget {
                           )
                         : Container(
                             color: AppColors.primary.withValues(alpha: 0.05),
-                            child: const Icon(
+                            child: Icon(
                               Icons.shopping_bag_rounded,
-                              size: 40,
+                              size: 40.r,
                               color: AppColors.primary,
                             ),
                           ),
@@ -441,19 +436,19 @@ class _PremiumProductCard extends StatelessWidget {
                       bottom: 8,
                       left: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 4.h,
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.error.withValues(alpha: 0.9),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(8.r),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Stok Tipis',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 10,
+                            fontSize: 10.sp,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -469,9 +464,9 @@ class _PremiumProductCard extends StatelessWidget {
                 children: [
                   Text(
                     product.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                      fontSize: 15.sp,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -479,10 +474,10 @@ class _PremiumProductCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     CurrencyHelper.formatIdr(product.price),
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w700,
-                      fontSize: 14,
+                      fontSize: 14.sp,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -491,8 +486,8 @@ class _PremiumProductCard extends StatelessWidget {
                       const Spacer(),
                       Text(
                         'Stok: ${product.stock}',
-                        style: const TextStyle(
-                          fontSize: 10,
+                        style: TextStyle(
+                          fontSize: 10.sp,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textSecondary,
                         ),
@@ -516,12 +511,14 @@ class _PremiumProductCard extends StatelessWidget {
       ),
       child: PopupMenuButton<String>(
         padding: EdgeInsets.zero,
-        icon: const Icon(
+        icon: Icon(
           Icons.more_vert_rounded,
-          size: 18,
+          size: 18.r,
           color: AppColors.textPrimary,
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
         onSelected: (value) {
           if (value == 'edit') {
             context.push('/edit-product', extra: product);
@@ -530,20 +527,20 @@ class _PremiumProductCard extends StatelessWidget {
           }
         },
         itemBuilder: (context) => [
-          const PopupMenuItem(
+          PopupMenuItem(
             value: 'edit',
             child: ListTile(
-              leading: Icon(Icons.edit_rounded, size: 20),
+              leading: Icon(Icons.edit_rounded, size: 20.r),
               title: Text('Edit'),
               contentPadding: EdgeInsets.zero,
             ),
           ),
-          const PopupMenuItem(
+          PopupMenuItem(
             value: 'delete',
             child: ListTile(
               leading: Icon(
                 Icons.delete_rounded,
-                size: 20,
+                size: 20.r,
                 color: AppColors.error,
               ),
               title: Text('Hapus', style: TextStyle(color: AppColors.error)),
@@ -598,7 +595,7 @@ class _DrawerItem extends StatelessWidget {
     final activeColor = accentColor ?? AppColors.primary;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
       child: ListTile(
         onTap: onTap,
         leading: Icon(
@@ -610,10 +607,12 @@ class _DrawerItem extends StatelessWidget {
           style: TextStyle(
             color: isActive ? activeColor : (color ?? AppColors.textPrimary),
             fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-            fontSize: 16,
+            fontSize: 16.sp,
           ),
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
         tileColor: isActive ? activeColor.withValues(alpha: 0.1) : null,
       ),
     );

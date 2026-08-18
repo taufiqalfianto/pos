@@ -11,6 +11,7 @@ import 'package:pos/core/helper/currency_helper.dart';
 import 'package:pos/core/helper/file_helper.dart';
 import 'package:pos/features/product/cubit/product_cubit.dart';
 import '../data/model/product_model.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final ProductModel product;
@@ -73,9 +74,9 @@ class ProductDetailScreen extends StatelessWidget {
                         colors: [AppColors.primary, AppColors.primaryLight],
                       ),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.shopping_bag_rounded,
-                      size: 100,
+                      size: 100.r,
                       color: Colors.white24,
                     ),
                   );
@@ -90,9 +91,9 @@ class ProductDetailScreen extends StatelessWidget {
                     colors: [AppColors.primary, AppColors.primaryLight],
                   ),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.shopping_bag_rounded,
-                  size: 100,
+                  size: 100.r,
                   color: Colors.white24,
                 ),
               ),
@@ -128,9 +129,9 @@ class ProductDetailScreen extends StatelessWidget {
       padding: EdgeInsets.all(
         isLandscape ? (isTablet ? 22 : 24) : (isTablet ? 28 : 32),
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.background,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(40.r)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,8 +147,8 @@ class ProductDetailScreen extends StatelessWidget {
                       product.name,
                       style: AppStyles.titleStyle.copyWith(
                         fontSize: isLandscape
-                            ? (isTablet ? 22 : 24)
-                            : (isTablet ? 26 : 28),
+                            ? (isTablet ? 22.sp : 24.sp)
+                            : (isTablet ? 26.sp : 28.sp),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -162,10 +163,10 @@ class ProductDetailScreen extends StatelessWidget {
                 ),
                 child: Text(
                   CurrencyHelper.formatIdr(product.price),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
-                    fontSize: 20,
+                    fontSize: 20.sp,
                   ),
                 ),
               ),
@@ -191,25 +192,25 @@ class ProductDetailScreen extends StatelessWidget {
                 : AppColors.warning,
           ),
           SizedBox(height: isTablet ? 24 : 32),
-          const Text(
+          Text(
             'Deskripsi',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp),
           ),
           const SizedBox(height: 12),
           Text(
             product.description.isEmpty
                 ? 'Tidak ada deskripsi untuk produk ini.'
                 : product.description,
-            style: const TextStyle(
+            style: TextStyle(
               height: 1.6,
               color: AppColors.textSecondary,
-              fontSize: 15,
+              fontSize: 15.sp,
             ),
           ),
           const SizedBox(height: 32),
-          const Text(
+          Text(
             'Inventaris',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp),
           ),
           const SizedBox(height: 16),
           Container(
@@ -299,7 +300,7 @@ class ProductDetailScreen extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: isTablet ? 11 : 12,
+                  fontSize: isTablet ? 11.sp : 12.sp,
                   color: AppColors.textSecondary,
                 ),
               ),
@@ -307,7 +308,7 @@ class ProductDetailScreen extends StatelessWidget {
                 value,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: isTablet ? 15 : 16,
+                  fontSize: isTablet ? 15.sp : 16.sp,
                 ),
               ),
             ],

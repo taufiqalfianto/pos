@@ -7,6 +7,7 @@ import 'package:pos/core/helper/currency_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
 import 'package:pos/features/order/cubit/order_cubit.dart';
 import 'package:pos/features/order/cubit/order_state.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class OrderHistoryScreen extends StatelessWidget {
   const OrderHistoryScreen({super.key});
@@ -69,7 +70,7 @@ class OrderHistoryScreen extends StatelessWidget {
         children: [
           Icon(
             Icons.receipt_long_rounded,
-            size: 64,
+            size: 64.r,
             color: AppColors.textSecondary.withOpacity(0.2),
           ),
           SizedBox(height: 16.h),
@@ -102,37 +103,37 @@ class _PremiumHistoryCard extends StatelessWidget {
         ),
         subtitle: Text(
           DateFormat('dd MMM yyyy, HH:mm').format(order.createdAt),
-          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary),
         ),
         trailing: Text(
           CurrencyHelper.formatIdr(order.totalPrice),
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
             color: AppColors.primary,
-            fontSize: 16,
+            fontSize: 16.sp,
           ),
         ),
-        childrenPadding: const EdgeInsets.all(20),
+        childrenPadding: EdgeInsets.all(20.w),
         children: [
           const Divider(height: 1),
           const SizedBox(height: 12),
           ...order.items
               .map<Widget>(
                 (item) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  padding: EdgeInsets.symmetric(vertical: 4.h),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
                         child: Text(
                           '${item.quantity}x ${item.productName}',
-                          style: const TextStyle(fontSize: 14),
+                          style: TextStyle(fontSize: 14.sp),
                         ),
                       ),
                       Text(
                         CurrencyHelper.formatIdr(item.price * item.quantity),
-                        style: const TextStyle(
-                          fontSize: 14,
+                        style: TextStyle(
+                          fontSize: 14.sp,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -149,8 +150,8 @@ class _PremiumHistoryCard extends StatelessWidget {
               SizedBox(width: 8.w),
               Text(
                 CurrencyHelper.formatIdr(order.totalPrice),
-                style: const TextStyle(
-                  fontSize: 18,
+                style: TextStyle(
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
                 ),
