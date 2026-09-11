@@ -1,0 +1,68 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "POS - Android Emulator 1",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "emulator-5554"
+    },
+    {
+      "name": "POS - Android Emulator 1 (Profile)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "emulator-5554",
+      "flutterMode": "profile"
+    },
+    {
+      "name": "POS - Android Emulator 2 (Tablet)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "emulator-5556"
+    },
+    {
+      "name": "POS - iPhone",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "00008101-00123CCC0204001E"
+    },
+    {
+      "name": "POS - Chrome",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "chrome"
+    },
+    {
+      "name": "POS - macOS",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "macos"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "POS - Dual Android Emulators",
+      "configurations": [
+        "POS - Android Emulator 1",
+        "POS - Android Emulator 2 (Tablet)"
+      ],
+      "stopTogether": true
+    },
+    {
+      "name": "POS - Android & iOS",
+      "configurations": [
+        "POS - Android Emulator 1",
+        "POS - iPhone"
+      ],
+      "stopTogether": true
+    },
+    {
+      "name": "POS - Android & Chrome",
+      "configurations": [
+        "POS - Android Emulator 1",
+        "POS - Chrome"
+      ],
+      "stopTogether": true
+    }
+  ]
+}

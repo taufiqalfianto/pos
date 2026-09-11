@@ -15,7 +15,7 @@ import 'package:pos/features/order/cubit/sales_report_cubit.dart';
 import 'package:go_router/go_router.dart';
 import 'package:restart_app/restart_app.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class PosApp extends StatefulWidget {
   final AuthCubit authCubit;
@@ -72,17 +72,18 @@ class _PosAppState extends State<PosApp> {
     final productRepository = ProductRepository();
     final orderRepository = OrderRepository();
 
-    return ScreenUtilPlusInit(
+    return ScreenUtilInit(
       designSize: const Size(393, 852), // iPhone 14/15 base size
       splitScreenMode: true,
       // Skala font global mengikuti breakpoint & orientasi, bukan lebar penuh
       // layar, sehingga teks konsisten di portrait/landscape/tablet.
       fontSizeResolver: (fontSize, instance) =>
-          fontSize *
-          AppBreakpointResolver.fontScaleFor(
-            instance.screenWidth,
-            instance.screenHeight,
-          ),
+          (fontSize *
+                  AppBreakpointResolver.fontScaleFor(
+                    instance.screenWidth,
+                    instance.screenHeight,
+                  ))
+              .toDouble(),
       builder: (context, child) {
         return MultiBlocProvider(
           providers: [

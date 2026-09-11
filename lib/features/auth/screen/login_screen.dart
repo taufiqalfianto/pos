@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:pos/core/widgets/app_logo.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
+import 'package:pos/core/widgets/loading_button_child.dart';
 import '../../../core/util/responsive_layout.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -34,13 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         },
         child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [AppColors.primary, AppColors.primaryLight],
-            ),
-          ),
+          decoration: const BoxDecoration(gradient: AppColors.brandGradient),
           child: LayoutBuilder(
             builder: (context, constraints) {
               final isLandscape =
@@ -61,8 +56,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           padding: EdgeInsets.all(24.w),
                           child: _buildAuthCard(
                             context,
-                            cardPadding: EdgeInsets.all(isTablet ? 24.r : 28.r),
-                            logoSize: isTablet ? 76 : 84,
+                            cardPadding: EdgeInsets.all(isTablet ? 24.w : 28.w),
+                            logoSize: isTablet ? 76.w : 84.w,
                             titleFontSize: isTablet ? 24.sp : 28.sp,
                           ),
                         ),
@@ -86,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
         padding: ResponsiveLayout.pagePadding(context),
         child: _buildAuthCard(
           context,
-          cardPadding: EdgeInsets.all(isTablet ? 24.r : 28.r),
+          cardPadding: EdgeInsets.all(isTablet ? 24.w : 28.w),
           logoSize: isTablet ? 88.w : 100.w,
           titleFontSize: isTablet ? 28.sp : 32.sp,
         ),
@@ -104,24 +99,10 @@ class _LoginScreenState extends State<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: responsive.isLandscape
+            AppLogo(
+              size: responsive.isLandscape
                   ? (isTablet ? 64.w : 50.w)
                   : (isTablet ? 88.w : 100.w),
-              height: responsive.isLandscape
-                  ? (isTablet ? 64.w : 50.w)
-                  : (isTablet ? 88.w : 100.w),
-              decoration: BoxDecoration(
-                image: const DecorationImage(
-                  image: NetworkImage(
-                    'https://corenews.id/wp-content/uploads/2024/08/PosInd.jpg',
-                  ),
-                  fit: BoxFit.cover,
-                ),
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: AppStyles.premiumShadow,
-              ),
             ),
             SizedBox(
               height: responsive.isLandscape
@@ -182,21 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: logoSize,
-              height: logoSize,
-              decoration: BoxDecoration(
-                image: const DecorationImage(
-                  image: NetworkImage(
-                    'https://corenews.id/wp-content/uploads/2024/08/PosInd.jpg',
-                  ),
-                  fit: BoxFit.cover,
-                ),
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: AppStyles.premiumShadow,
-              ),
-            ),
+            AppLogo(size: logoSize),
             SizedBox(height: isTablet ? 20.h : 24.h),
             Text(
               'Premium POS',
@@ -226,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               validator: (val) => val!.isEmpty ? 'Username harus diisi' : null,
             ),
-            SizedBox(height: isTablet ? 12.h : 16),
+            SizedBox(height: isTablet ? 12.h : 16.h),
             TextFormField(
               controller: _passwordController,
               obscureText: !_isPasswordVisible,
@@ -245,44 +212,59 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               validator: (val) => val!.isEmpty ? 'Password harus diisi' : null,
             ),
-            SizedBox(height: isTablet ? 28.h : 40),
+            SizedBox(height: isTablet ? 28.h : 40.h),
             SizedBox(
               width: double.infinity,
               height: isTablet ? 52.h : 56.h,
-              child: FilledButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    context.read<AuthCubit>().login(
-                      _usernameController.text,
-                      _passwordController.text,
-                    );
-                  }
+              child: BlocBuilder<AuthCubit, AuthState>(
+                builder: (context, state) {
+                  final isLoading = state is AuthLoading;
+                  return FilledButton(
+                    onPressed: isLoading
+                        ? null
+                        : () {
+                            if (_formKey.currentState!.validate()) {
+                              context.read<AuthCubit>().login(
+                                _usernameController.text,
+                                _passwordController.text,
+                              );
+                            }
+                          },
+                    style: FilledButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          isTablet ? 16.r : 18.r,
+                        ),
+                      ),
+                    ),
+                    child: LoadingButtonChild(
+                      isLoading: isLoading,
+                      label: 'Masuk Sekarang',
+                      textStyle: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  );
                 },
-                style: FilledButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(isTablet ? 16.r : 18.r),
-                  ),
-                ),
-                child: Text(
-                  'Masuk Sekarang',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1,
-                  ),
-                ),
               ),
             ),
             SizedBox(height: isTablet ? 16.h : 20.h),
-            TextButton(
-              onPressed: () => context.go('/register'),
-              child: const Text(
-                'Belum punya akun? Daftar gratis',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+            BlocBuilder<AuthCubit, AuthState>(
+              builder: (context, state) {
+                final isLoading = state is AuthLoading;
+                return TextButton(
+                  onPressed: isLoading ? null : () => context.go('/register'),
+                  child: const Text(
+                    'Belum punya akun? Daftar gratis',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),

@@ -10,7 +10,7 @@ import 'package:pos/core/helper/file_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -72,6 +72,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           );
         }
 
+        if (!mounted) return;
+
         final updatedUser = authState.user.copyWith(
           name: _nameController.text,
           username: _usernameController.text,
@@ -111,14 +113,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   child: Column(
                     children: [
-                      SizedBox(height: isTablet ? 16 : 20),
+                      SizedBox(height: isTablet ? 16.h : 20.h),
                       Center(
                         child: GestureDetector(
                           onTap: _pickImage,
                           child: Stack(
                             children: [
                               Container(
-                                padding: EdgeInsets.all(isTablet ? 6 : 8),
+                                padding: EdgeInsets.all(isTablet ? 6.w : 8.w),
                                 decoration: BoxDecoration(
                                   color: AppColors.primary.withValues(
                                     alpha: 0.1,
@@ -127,8 +129,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 ),
                                 child: CircleAvatar(
                                   radius: isLandscape
-                                      ? (isTablet ? 48 : 52)
-                                      : (isTablet ? 56 : 60),
+                                      ? (isTablet ? 48.r : 52.r)
+                                      : (isTablet ? 56.r : 60.r),
                                   backgroundColor: Colors.white,
                                   backgroundImage:
                                       _pickedImagePath != null &&
@@ -162,7 +164,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       color: Colors.white,
-                                      width: isTablet ? 2 : 3,
+                                      width: isTablet ? 2.w : 3.w,
                                     ),
                                   ),
                                   child: Icon(
@@ -178,17 +180,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                       SizedBox(
                         height: isLandscape
-                            ? (isTablet ? 28 : 32)
-                            : (isTablet ? 40 : 48),
+                            ? (isTablet ? 28.h : 32.h)
+                            : (isTablet ? 40.h : 48.h),
                       ),
                       Container(
                         decoration: AppStyles.glassDecoration(
-                          borderRadius: isTablet ? 28 : 32,
+                          borderRadius: isTablet ? 28.r : 32.r,
                         ),
                         padding: EdgeInsets.all(
                           isLandscape
-                              ? (isTablet ? 20 : 24)
-                              : (isTablet ? 28 : 32),
+                              ? (isTablet ? 20.w : 24.w)
+                              : (isTablet ? 28.w : 32.w),
                         ),
                         child: Form(
                           key: _formKey,
@@ -196,7 +198,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               _buildHeader('Informasi Akun'),
-                              SizedBox(height: isTablet ? 20 : 24),
+                              SizedBox(height: isTablet ? 20.h : 24.h),
                               TextFormField(
                                 controller: _nameController,
                                 decoration: const InputDecoration(
@@ -206,7 +208,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 validator: (val) =>
                                     val!.isEmpty ? 'Nama harus diisi' : null,
                               ),
-                              SizedBox(height: isTablet ? 12 : 16),
+                              SizedBox(height: isTablet ? 12.h : 16.h),
                               TextFormField(
                                 controller: _usernameController,
                                 decoration: const InputDecoration(
@@ -217,15 +219,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     ? 'Username harus diisi'
                                     : null,
                               ),
-                              SizedBox(height: isTablet ? 28 : 40),
+                              SizedBox(height: isTablet ? 28.h : 40.h),
                               SizedBox(
-                                height: isTablet ? 52 : 60,
+                                height: isTablet ? 52.h : 60.h,
                                 child: FilledButton(
                                   onPressed: _saveProfile,
                                   style: FilledButton.styleFrom(
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(
-                                        isTablet ? 16 : 20,
+                                        isTablet ? 16.r : 20.r,
                                       ),
                                     ),
                                   ),
@@ -242,7 +244,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: isTablet ? 24 : 32),
+                      SizedBox(height: isTablet ? 24.h : 32.h),
                       FutureBuilder<PackageInfo>(
                         future: PackageInfo.fromPlatform(),
                         builder: (context, snapshot) {
@@ -259,7 +261,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           );
                         },
                       ),
-                      SizedBox(height: isTablet ? 12 : 16),
+                      SizedBox(height: isTablet ? 12.h : 16.h),
                     ],
                   ),
                 ),
@@ -275,14 +277,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Row(
       children: [
         Container(
-          width: 4,
-          height: 20,
+          width: 4.w,
+          height: 20.h,
           decoration: BoxDecoration(
             color: AppColors.primary,
             borderRadius: BorderRadius.circular(2.r),
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: 12.w),
         Text(
           title,
           style: TextStyle(

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:pos/core/helper/app_logger.dart';
 import 'package:pos/features/product/data/model/product_model.dart';
@@ -12,6 +12,8 @@ class ProductCubit extends Cubit<ProductState> {
   final ProductRepository _repository;
   List<ProductModel> _allProducts = [];
   StreamSubscription? _productSubscription;
+  Timer? _searchDebounce;
+
   ProductCubit(this._repository) : super(ProductInitial()) {
     _subscribeToProductUpdates();
   }
@@ -37,19 +39,23 @@ class ProductCubit extends Cubit<ProductState> {
   }
 
   void searchProducts(String query) {
-    if (query.isEmpty) {
-      emit(ProductLoaded(_allProducts));
-      return;
-    }
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 150), () {
+      if (isClosed) return;
+      if (query.trim().isEmpty) {
+        emit(ProductLoaded(_allProducts));
+        return;
+      }
 
-    final filtered = _allProducts.where((product) {
-      final name = product.name.toLowerCase();
-      final desc = product.description.toLowerCase();
-      final searchTerm = query.toLowerCase();
-      return name.contains(searchTerm) || desc.contains(searchTerm);
-    }).toList();
+      final searchTerm = query.trim().toLowerCase();
+      final filtered = _allProducts.where((product) {
+        final name = product.name.toLowerCase();
+        final desc = product.description.toLowerCase();
+        return name.contains(searchTerm) || desc.contains(searchTerm);
+      }).toList();
 
-    emit(ProductLoaded(filtered));
+      emit(ProductLoaded(filtered));
+    });
   }
 
   Future<void> addProduct(ProductModel product) async {
@@ -98,6 +104,7 @@ class ProductCubit extends Cubit<ProductState> {
 
   @override
   Future<void> close() {
+    _searchDebounce?.cancel();
     _productSubscription?.cancel();
     return super.close();
   }

@@ -2,7 +2,7 @@ import 'package:delightful_toast/delight_toast.dart';
 import 'package:delightful_toast/toast/components/toast_card.dart';
 import 'package:delightful_toast/toast/utils/enums.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/util/responsive_layout.dart';
 
@@ -46,7 +46,7 @@ class ToastHelper {
       autoDismiss: true,
       snackbarDuration: const Duration(seconds: 3),
       builder: (context) => ToastCard(
-        leading: Icon(icon, color: color, size: isTablet ? 24 : 28),
+        leading: Icon(icon, color: color, size: isTablet ? 24.r : 28.r),
         title: Text(
           message,
           style: TextStyle(

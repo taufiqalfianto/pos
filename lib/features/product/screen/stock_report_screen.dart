@@ -6,7 +6,7 @@ import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/util/responsive_layout.dart';
 import '../cubit/stock_report_cubit.dart';
 import '../data/model/product_model.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class StockReportScreen extends StatefulWidget {
   final ProductModel product;
@@ -33,8 +33,8 @@ class _StockReportScreenState extends State<StockReportScreen> {
           _buildSummaryCard(),
           Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: isLandscape ? 20 : 24.w,
-              vertical: isLandscape ? 10 : 16.h,
+              horizontal: isLandscape ? 20.w : 24.w,
+              vertical: isLandscape ? 10.h : 16.h,
             ),
             child: Row(
               children: [
@@ -65,7 +65,7 @@ class _StockReportScreenState extends State<StockReportScreen> {
               portrait: 60,
               landscape: 52,
               tablet: 52,
-            ),
+            ).h,
             child: FilledButton.icon(
               onPressed: () =>
                   context.push('/add-stock-report', extra: widget.product),
@@ -89,26 +89,26 @@ class _StockReportScreenState extends State<StockReportScreen> {
   Widget _buildSummaryCard() {
     final isLandscape = context.isLandscape;
     return Container(
-      margin: EdgeInsets.all(isLandscape ? 16 : 24.w),
-      padding: EdgeInsets.all(isLandscape ? 14 : 24.w),
+      margin: EdgeInsets.all(isLandscape ? 16.w : 24.w),
+      padding: EdgeInsets.all(isLandscape ? 14.w : 24.w),
       decoration: AppStyles.glassDecoration(
         borderRadius: isLandscape ? 24 : 32,
       ),
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(isLandscape ? 10 : 16.w),
+            padding: EdgeInsets.all(isLandscape ? 10.w : 16.w),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(isLandscape ? 14 : 20.r),
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(isLandscape ? 14.r : 20.r),
             ),
             child: Icon(
               Icons.inventory_2_rounded,
               color: AppColors.primary,
-              size: isLandscape ? 26 : 32.r,
+              size: isLandscape ? 26.r : 32.r,
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,7 +120,7 @@ class _StockReportScreenState extends State<StockReportScreen> {
                     fontSize: isLandscape ? 15.sp : 18.sp,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4.h),
                 Text(
                   'Stok Sistem Saat Ini: ${widget.product.stock}',
                   style: AppStyles.subtitleStyle,
@@ -147,9 +147,9 @@ class _StockReportScreenState extends State<StockReportScreen> {
                   Icon(
                     Icons.history_rounded,
                     size: 48.r,
-                    color: AppColors.textSecondary.withOpacity(0.2),
+                    color: AppColors.textSecondary.withValues(alpha: 0.2),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16.h),
                   Text('Belum ada riwayat', style: AppStyles.subtitleStyle),
                 ],
               ),
@@ -167,7 +167,8 @@ class _StockReportScreenState extends State<StockReportScreen> {
                   child: ListView.separated(
                     padding: ResponsiveLayout.pagePadding(context),
                     itemCount: state.reports.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    separatorBuilder: (context, index) =>
+                        SizedBox(height: 12.h),
                     itemBuilder: (context, index) {
                       final report = state.reports[index];
                       final isPositive = report.adjustment > 0;
@@ -184,7 +185,7 @@ class _StockReportScreenState extends State<StockReportScreen> {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(20.r),
                           border: Border.all(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                           ),
                         ),
                         child: Column(
@@ -208,7 +209,7 @@ class _StockReportScreenState extends State<StockReportScreen> {
                                     vertical: 4.h,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: adjColor.withOpacity(0.1),
+                                    color: adjColor.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(8.r),
                                   ),
                                   child: Text(
@@ -222,16 +223,16 @@ class _StockReportScreenState extends State<StockReportScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12.h),
                             Row(
                               children: [
                                 _infoItem('Sistem', '${report.systemStock}'),
-                                const SizedBox(width: 24),
+                                SizedBox(width: 24.w),
                                 _infoItem('Manual', '${report.manualStock}'),
                               ],
                             ),
                             if (report.note.isNotEmpty) ...[
-                              const Divider(height: 24),
+                              Divider(height: 24.h),
                               Text(
                                 report.note,
                                 style: TextStyle(

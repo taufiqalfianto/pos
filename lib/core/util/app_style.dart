@@ -1,24 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AppColors {
-  // Primary Palette
-  static const Color primary = Color(0xFF6366F1); // Indigo
-  static const Color primaryLight = Color(0xFF818CF8);
-  static const Color accent = Color(0xFF22D3EE); // Cyan
+  // Brand palette, drawn from the POS logo.
+  static const Color primaryDark = Color(0xFF003BB8);
+  static const Color primary = Color(0xFF006BFF);
+  static const Color primaryLight = Color(0xFF1597FF);
+  static const Color primarySoft = Color(0xFFEAF4FF);
+
+  static const Color secondaryDark = Color(0xFF129A4A);
+  static const Color secondary = Color(0xFF25C967);
+  static const Color secondaryLight = Color(0xFF74E39B);
+  static const Color secondarySoft = Color(0xFFEAFBF0);
+
+  static const Color tertiaryDark = Color(0xFFD98600);
+  static const Color tertiary = Color(0xFFFFB21A);
+  static const Color tertiaryLight = Color(0xFFFFD36A);
+  static const Color tertiarySoft = Color(0xFFFFF7E1);
+
+  static const Color accent = secondary;
+  static const Color info = Color(0xFF0B4EC9);
 
   // Neutral Palette
-  static const Color background = Color(0xFFF8FAFC);
+  static const Color background = Color(0xFFF4F8FF);
   static const Color surface = Colors.white;
   static const Color textPrimary = Color(0xFF0F172A); // Slate 900
   static const Color textSecondary = Color(0xFF64748B); // Slate 500
 
   // Status Colors
-  static const Color success = Color(0xFF10B981);
-  static const Color warning = Color(0xFFF59E0B);
+  static const Color success = secondaryDark;
+  static const Color warning = tertiaryDark;
   static const Color error = Color(0xFFEF4444);
 
-  // Glassmorphic Gradients
+  static const LinearGradient brandGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [primaryDark, primary, primaryLight],
+  );
+
   static const LinearGradient glassGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -68,12 +87,15 @@ class AppStyles {
     double blur = 10.0,
   }) {
     return BoxDecoration(
-      color: (color ?? Colors.white).withOpacity(0.7),
+      color: (color ?? Colors.white).withValues(alpha: 0.7),
       borderRadius: BorderRadius.circular(borderRadius.r),
-      border: Border.all(color: Colors.deepPurple.withOpacity(0.2), width: 2.w),
+      border: Border.all(
+        color: AppColors.primaryLight.withValues(alpha: 0.2),
+        width: 2.w,
+      ),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.04),
+          color: Colors.black.withValues(alpha: 0.04),
           blurRadius: 20.r,
           offset: Offset(0, 8.h),
         ),

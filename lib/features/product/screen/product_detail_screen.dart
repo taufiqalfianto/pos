@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/util/modern_dialog.dart';
 import 'package:pos/core/util/responsive_layout.dart';
@@ -11,7 +11,6 @@ import 'package:pos/core/helper/currency_helper.dart';
 import 'package:pos/core/helper/file_helper.dart';
 import 'package:pos/features/product/cubit/product_cubit.dart';
 import '../data/model/product_model.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final ProductModel product;
@@ -39,7 +38,7 @@ class ProductDetailScreen extends StatelessWidget {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(isTablet ? 18 : 20),
+          borderRadius: BorderRadius.circular(isTablet ? 18.r : 20.r),
         ),
       ),
     );
@@ -49,8 +48,8 @@ class ProductDetailScreen extends StatelessWidget {
     final isTablet = ResponsiveLayout.isTablet(context);
     return SliverAppBar(
       expandedHeight: isLandscape
-          ? (isTablet ? 220 : 240)
-          : (isTablet ? 300 : 350),
+          ? (isTablet ? 220.h : 240.h)
+          : (isTablet ? 300.h : 350.h),
       pinned: true,
       stretch: true,
       backgroundColor: AppColors.background,
@@ -68,11 +67,7 @@ class ProductDetailScreen extends StatelessWidget {
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [AppColors.primary, AppColors.primaryLight],
-                      ),
+                      gradient: AppColors.brandGradient,
                     ),
                     child: Icon(
                       Icons.shopping_bag_rounded,
@@ -85,11 +80,7 @@ class ProductDetailScreen extends StatelessWidget {
             else
               Container(
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [AppColors.primary, AppColors.primaryLight],
-                  ),
+                  gradient: AppColors.brandGradient,
                 ),
                 child: Icon(
                   Icons.shopping_bag_rounded,
@@ -115,7 +106,7 @@ class ProductDetailScreen extends StatelessWidget {
           icon: const Icon(Icons.delete_sweep_rounded),
           onPressed: () => _showDeleteDialog(context),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: 8.w),
       ],
     );
   }
@@ -127,7 +118,7 @@ class ProductDetailScreen extends StatelessWidget {
     final isTablet = ResponsiveLayout.isTablet(context);
     return Container(
       padding: EdgeInsets.all(
-        isLandscape ? (isTablet ? 22 : 24) : (isTablet ? 28 : 32),
+        isLandscape ? (isTablet ? 22.w : 24.w) : (isTablet ? 28.w : 32.w),
       ),
       decoration: BoxDecoration(
         color: AppColors.background,
@@ -151,35 +142,57 @@ class ProductDetailScreen extends StatelessWidget {
                             : (isTablet ? 26.sp : 28.sp),
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4.h),
                     Text('Kategori: Umum', style: AppStyles.subtitleStyle),
                   ],
                 ),
               ),
               Container(
-                padding: EdgeInsets.all(isTablet ? 14 : 16),
+                padding: EdgeInsets.all(isTablet ? 14.w : 16.w),
                 decoration: AppStyles.glassDecoration(
                   borderRadius: isTablet ? 18 : 20,
                 ),
-                child: Text(
-                  CurrencyHelper.formatIdr(product.price),
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                    fontSize: 20.sp,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('Harga Jual', style: AppStyles.subtitleStyle),
+                    Text(
+                      CurrencyHelper.formatIdr(product.price),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                        fontSize: 20.sp,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          SizedBox(height: isTablet ? 24 : 32),
+          SizedBox(height: isTablet ? 24.h : 32.h),
           _buildInfoRow(
             context,
             Icons.inventory_2_rounded,
             'Stok Tersedia',
             '${product.stock} Unit',
           ),
-          SizedBox(height: isTablet ? 12 : 16),
+          SizedBox(height: isTablet ? 12.h : 16.h),
+          _buildInfoRow(
+            context,
+            Icons.savings_rounded,
+            'Modal per Item',
+            CurrencyHelper.formatIdr(product.costPrice),
+            color: AppColors.tertiary,
+          ),
+          SizedBox(height: isTablet ? 12.h : 16.h),
+          _buildInfoRow(
+            context,
+            Icons.account_balance_wallet_rounded,
+            'Total Modal Stok',
+            CurrencyHelper.formatIdr(product.costPrice * product.stock),
+            color: AppColors.secondary,
+          ),
+          SizedBox(height: isTablet ? 12.h : 16.h),
           _buildInfoRow(
             context,
             product.isSynced == 1
@@ -191,12 +204,12 @@ class ProductDetailScreen extends StatelessWidget {
                 ? AppColors.success
                 : AppColors.warning,
           ),
-          SizedBox(height: isTablet ? 24 : 32),
+          SizedBox(height: isTablet ? 24.h : 32.h),
           Text(
             'Deskripsi',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           Text(
             product.description.isEmpty
                 ? 'Tidak ada deskripsi untuk produk ini.'
@@ -207,14 +220,14 @@ class ProductDetailScreen extends StatelessWidget {
               fontSize: 15.sp,
             ),
           ),
-          const SizedBox(height: 32),
+          SizedBox(height: 32.h),
           Text(
             'Inventaris',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           Container(
-            padding: EdgeInsets.all(isTablet ? 16 : 20),
+            padding: EdgeInsets.all(isTablet ? 16.w : 20.w),
             decoration: AppStyles.glassDecoration(
               borderRadius: isTablet ? 20 : 24,
             ),
@@ -234,7 +247,7 @@ class ProductDetailScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: isTablet ? 16 : 20),
+                SizedBox(height: isTablet ? 16.h : 20.h),
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
@@ -244,11 +257,13 @@ class ProductDetailScreen extends StatelessWidget {
                     label: const Text('LIHAT LAPORAN STOK'),
                     style: OutlinedButton.styleFrom(
                       padding: EdgeInsets.symmetric(
-                        vertical: isTablet ? 14 : 16,
+                        vertical: isTablet ? 14.h : 16.h,
                       ),
                       side: const BorderSide(color: AppColors.primary),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(isTablet ? 14 : 16),
+                        borderRadius: BorderRadius.circular(
+                          isTablet ? 14.r : 16.r,
+                        ),
                       ),
                     ),
                   ),
@@ -257,7 +272,9 @@ class ProductDetailScreen extends StatelessWidget {
             ),
           ),
           SizedBox(
-            height: isLandscape ? (isTablet ? 64 : 72) : (isTablet ? 88 : 100),
+            height: isLandscape
+                ? (isTablet ? 64.h : 72.h)
+                : (isTablet ? 88.h : 100.h),
           ),
         ],
       ),
@@ -273,16 +290,16 @@ class ProductDetailScreen extends StatelessWidget {
   }) {
     final isTablet = ResponsiveLayout.isTablet(context);
     return Container(
-      padding: EdgeInsets.all(isTablet ? 14 : 16),
+      padding: EdgeInsets.all(isTablet ? 14.w : 16.w),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(isTablet ? 18 : 20),
+        borderRadius: BorderRadius.circular(isTablet ? 18.r : 20.r),
         boxShadow: AppStyles.premiumShadow,
       ),
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(isTablet ? 8 : 10),
+            padding: EdgeInsets.all(isTablet ? 8.w : 10.w),
             decoration: BoxDecoration(
               color: (color ?? AppColors.primary).withValues(alpha: 0.1),
               shape: BoxShape.circle,
@@ -290,10 +307,10 @@ class ProductDetailScreen extends StatelessWidget {
             child: Icon(
               icon,
               color: color ?? AppColors.primary,
-              size: isTablet ? 22 : 24,
+              size: isTablet ? 22.r : 24.r,
             ),
           ),
-          SizedBox(width: isTablet ? 12 : 16),
+          SizedBox(width: isTablet ? 12.w : 16.w),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

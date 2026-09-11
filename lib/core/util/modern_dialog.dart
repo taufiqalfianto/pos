@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/util/responsive_layout.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ModernDialog extends StatelessWidget {
   final String title;
@@ -54,13 +54,13 @@ class ModernDialog extends StatelessWidget {
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: EdgeInsets.all(isLandscape || isTablet ? 20 : 24),
+      insetPadding: EdgeInsets.all(isLandscape || isTablet ? 20.w : 24.w),
       child: Container(
-        padding: EdgeInsets.all(isLandscape || isTablet ? 24 : 32),
+        padding: EdgeInsets.all(isLandscape || isTablet ? 24.w : 32.w),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(
-            isLandscape || isTablet ? 28 : 32,
+            isLandscape || isTablet ? 28.r : 32.r,
           ),
           boxShadow: AppStyles.premiumShadow,
         ),
@@ -70,27 +70,27 @@ class ModernDialog extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: EdgeInsets.all(isLandscape || isTablet ? 16 : 20),
+                padding: EdgeInsets.all(isLandscape || isTablet ? 16.w : 20.w),
                 decoration: BoxDecoration(
                   color: confirmColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   icon,
-                  size: isLandscape || isTablet ? 36 : 40,
+                  size: isLandscape || isTablet ? 36.r : 40.r,
                   color: confirmColor,
                 ),
               ),
-              SizedBox(height: isLandscape || isTablet ? 18 : 24),
+              SizedBox(height: isLandscape || isTablet ? 18.h : 24.h),
               Text(
                 title,
                 style: AppStyles.titleStyle.copyWith(
                   fontSize: isLandscape || isTablet ? 20.sp : 22.sp,
                 ),
               ),
-              SizedBox(height: isLandscape || isTablet ? 18 : 24),
+              SizedBox(height: isLandscape || isTablet ? 18.h : 24.h),
               content,
-              SizedBox(height: isLandscape || isTablet ? 24 : 32),
+              SizedBox(height: isLandscape || isTablet ? 24.h : 32.h),
               Row(
                 children: [
                   Expanded(
@@ -98,11 +98,11 @@ class ModernDialog extends StatelessWidget {
                       onPressed: () => Navigator.pop(context),
                       style: TextButton.styleFrom(
                         padding: EdgeInsets.symmetric(
-                          vertical: isLandscape || isTablet ? 14 : 16,
+                          vertical: isLandscape || isTablet ? 14.h : 16.h,
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
-                            isLandscape || isTablet ? 14 : 16,
+                            isLandscape || isTablet ? 14.r : 16.r,
                           ),
                         ),
                       ),
@@ -115,7 +115,7 @@ class ModernDialog extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: 16.w),
                   Expanded(
                     child: FilledButton(
                       onPressed: () {
@@ -125,11 +125,11 @@ class ModernDialog extends StatelessWidget {
                       style: FilledButton.styleFrom(
                         backgroundColor: confirmColor,
                         padding: EdgeInsets.symmetric(
-                          vertical: isLandscape || isTablet ? 14 : 16,
+                          vertical: isLandscape || isTablet ? 14.h : 16.h,
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
-                            isLandscape || isTablet ? 14 : 16,
+                            isLandscape || isTablet ? 14.r : 16.r,
                           ),
                         ),
                       ),

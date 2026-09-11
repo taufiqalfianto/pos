@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// Breakpoint sesuai dokumen teknis responsif:
 ///
@@ -222,21 +223,21 @@ class ResponsiveLayout {
     final width = MediaQuery.of(context).size.width;
     if (width >= 1200) {
       return EdgeInsets.symmetric(
-        horizontal: wideHorizontal,
-        vertical: wideVertical,
+        horizontal: wideHorizontal.w,
+        vertical: wideVertical.h,
       );
     }
     if (width >= AppBreakpointResolver.tabletMin) {
       return EdgeInsets.symmetric(
-        horizontal: tabletHorizontal,
-        vertical: tabletVertical,
+        horizontal: tabletHorizontal.w,
+        vertical: tabletVertical.h,
       );
     }
     return EdgeInsets.symmetric(
       horizontal: isLandscape(context)
-          ? landscapeHorizontal
-          : portraitHorizontal,
-      vertical: isLandscape(context) ? landscapeVertical : portraitVertical,
+          ? landscapeHorizontal.w
+          : portraitHorizontal.w,
+      vertical: isLandscape(context) ? landscapeVertical.h : portraitVertical.h,
     );
   }
 
@@ -272,14 +273,17 @@ class ResponsiveLayout {
   }) {
     final width = MediaQuery.of(context).size.width;
     if (width >= 1200) {
-      return EdgeInsets.symmetric(horizontal: wide, vertical: wideVertical);
+      return EdgeInsets.symmetric(horizontal: wide.w, vertical: wideVertical.h);
     }
     if (width >= AppBreakpointResolver.tabletMin) {
-      return EdgeInsets.symmetric(horizontal: tablet, vertical: tabletVertical);
+      return EdgeInsets.symmetric(
+        horizontal: tablet.w,
+        vertical: tabletVertical.h,
+      );
     }
     return EdgeInsets.symmetric(
-      horizontal: isLandscape(context) ? landscape : portrait,
-      vertical: isLandscape(context) ? landscapeVertical : vertical,
+      horizontal: isLandscape(context) ? landscape.w : portrait.w,
+      vertical: isLandscape(context) ? landscapeVertical.h : vertical.h,
     );
   }
 

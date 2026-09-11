@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/currency_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
+import 'package:pos/features/order/cubit/order_cubit.dart';
+import 'package:pos/features/order/cubit/order_state.dart';
 import '../../order/cubit/sales_report_cubit.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class SalesReportScreen extends StatefulWidget {
   const SalesReportScreen({super.key});
@@ -46,83 +47,90 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Laporan Penjualan')),
-      body: BlocBuilder<SalesReportCubit, SalesReportState>(
-        builder: (context, state) {
-          if (state is SalesReportLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is SalesReportLoaded) {
-            return LayoutBuilder(
-              builder: (context, _) {
-                return Column(
-                  children: [
-                    _buildFilterHeader(state),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: ResponsiveLayout.pagePadding(context),
-                        child: Center(
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              maxWidth: ResponsiveLayout.contentMaxWidth(
-                                context,
-                                maxWidth: 980,
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildSummaryGrid(context, state),
-                                const SizedBox(height: 32),
-                                Text(
-                                  'Penjualan Per Kategori',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18.sp,
+      body: BlocListener<OrderCubit, OrderState>(
+        listenWhen: (previous, current) => current is OrderSuccess,
+        listener: (context, state) =>
+            context.read<SalesReportCubit>().refreshCurrentReport(),
+        child: BlocBuilder<SalesReportCubit, SalesReportState>(
+          builder: (context, state) {
+            if (state is SalesReportLoading) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is SalesReportLoaded) {
+              return LayoutBuilder(
+                builder: (context, _) {
+                  return Column(
+                    children: [
+                      _buildFilterHeader(state),
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: context
+                              .read<SalesReportCubit>()
+                              .refreshCurrentReport,
+                          color: AppColors.primary,
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: ResponsiveLayout.pagePadding(context),
+                            child: Center(
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth: ResponsiveLayout.contentMaxWidth(
+                                    context,
+                                    maxWidth: 980,
                                   ),
                                 ),
-                                const SizedBox(height: 16),
-                                _buildCategorySalesList(state.categorySales),
-                                const SizedBox(height: 32),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    _buildSummaryGrid(context, state),
+                                    SizedBox(height: 32.h),
                                     Text(
-                                      'Total Penjualan:',
-                                      style: AppStyles.subtitleStyle,
-                                    ),
-                                    Flexible(
-                                      child: FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        alignment: Alignment.centerRight,
-                                        child: Text(
-                                          CurrencyHelper.formatIdr(
-                                            state.totalRevenue,
-                                          ),
-                                          style: TextStyle(
-                                            fontSize: 24.sp,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.primary,
-                                          ),
-                                        ),
+                                      'Penjualan Per Kategori',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18.sp,
                                       ),
+                                    ),
+                                    SizedBox(height: 16.h),
+                                    _buildCategorySalesList(
+                                      state.categorySales,
+                                    ),
+                                    SizedBox(height: 32.h),
+                                    _buildTotalRow(
+                                      'Total Penjualan:',
+                                      state.totalRevenue,
+                                      AppColors.primary,
+                                    ),
+                                    SizedBox(height: 12.h),
+                                    _buildTotalRow(
+                                      'Total Modal:',
+                                      state.totalCost,
+                                      AppColors.tertiary,
+                                    ),
+                                    SizedBox(height: 12.h),
+                                    _buildTotalRow(
+                                      'Keuntungan:',
+                                      state.totalProfit,
+                                      state.totalProfit >= 0
+                                          ? AppColors.success
+                                          : AppColors.error,
                                     ),
                                   ],
                                 ),
-                              ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                );
-              },
-            );
-          } else if (state is SalesReportError) {
-            return Center(child: Text(state.message));
-          }
-          return const SizedBox();
-        },
+                    ],
+                  );
+                },
+              );
+            } else if (state is SalesReportError) {
+              return Center(child: Text(state.message));
+            }
+            return const Center(child: CircularProgressIndicator());
+          },
+        ),
       ),
     );
   }
@@ -138,9 +146,9 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10.r,
+            offset: Offset(0, 4.h),
           ),
         ],
       ),
@@ -167,7 +175,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
               );
             },
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -201,9 +209,9 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
         wide: 3,
         desktop: 4,
       ),
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      childAspectRatio: 1.1,
+      crossAxisSpacing: 16.w,
+      mainAxisSpacing: 16.h,
+      childAspectRatio: 0.85,
       children: [
         _buildStatCard(
           'Total Pesanan',
@@ -216,6 +224,18 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
           CurrencyHelper.formatIdr(state.totalRevenue),
           Icons.account_balance_wallet_outlined,
           AppColors.success,
+        ),
+        _buildStatCard(
+          'Total Modal',
+          CurrencyHelper.formatIdr(state.totalCost),
+          Icons.savings_outlined,
+          AppColors.tertiary,
+        ),
+        _buildStatCard(
+          'Keuntungan',
+          CurrencyHelper.formatIdr(state.totalProfit),
+          Icons.trending_up_rounded,
+          state.totalProfit >= 0 ? AppColors.success : AppColors.error,
         ),
       ],
     );
@@ -232,21 +252,21 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
       decoration: AppStyles.glassDecoration(borderRadius: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
             padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12.r),
             ),
             child: Icon(icon, color: color, size: 24.r),
           ),
-          const Spacer(),
           Text(
             label,
             style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4.h),
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
@@ -269,44 +289,97 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: categorySales.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (context, _) => SizedBox(height: 12.h),
       itemBuilder: (context, index) {
         final category = categorySales[index];
+        final revenue = (category['revenue'] as num?)?.toDouble() ?? 0;
+        final cost = (category['cost'] as num?)?.toDouble() ?? 0;
+        final profit = (category['profit'] as num?)?.toDouble() ?? 0;
+
         return Container(
           padding: EdgeInsets.all(20.w),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20.r),
-            border: Border.all(color: Colors.black.withOpacity(0.05)),
+            border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(
-                  category['category_name'],
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15.sp,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      category['category_name'],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15.sp,
+                      ),
+                    ),
+                    SizedBox(height: 4.h),
+                    Text(
+                      'Modal: ${CurrencyHelper.formatIdr(cost)}',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12.sp,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 12),
-              Text(
-                CurrencyHelper.formatIdr(
-                  (category['revenue'] as num).toDouble(),
-                ),
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                ),
+              SizedBox(width: 12.w),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    CurrencyHelper.formatIdr(revenue),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    'Untung: ${CurrencyHelper.formatIdr(profit)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: profit >= 0 ? AppColors.success : AppColors.error,
+                      fontSize: 12.sp,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildTotalRow(String label, double value, Color color) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: AppStyles.subtitleStyle),
+        SizedBox(width: 16.w),
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerRight,
+            child: Text(
+              CurrencyHelper.formatIdr(value),
+              style: TextStyle(
+                fontSize: 22.sp,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

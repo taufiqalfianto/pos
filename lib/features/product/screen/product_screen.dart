@@ -2,18 +2,18 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/helper/currency_helper.dart';
 import 'package:pos/core/helper/file_helper.dart';
 import 'package:pos/core/util/modern_dialog.dart';
 import 'package:pos/core/util/responsive_layout.dart';
+import 'package:pos/core/widgets/shimmer_loading.dart';
 import 'package:pos/features/product/data/model/product_model.dart';
 import '../cubit/product_cubit.dart';
 import '../../auth/cubit/auth_cubit.dart';
 import '../../auth/cubit/auth_state.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
@@ -38,7 +38,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Dashboard')),
-      drawer: _buildPremiumDrawer(context),
+      drawer: ResponsiveLayout.useRail(context)
+          ? _buildPremiumDrawer(context)
+          : null,
       body: Column(
         children: [
           _buildHeaderSection(),
@@ -46,7 +48,21 @@ class _ProductListScreenState extends State<ProductListScreen> {
             child: BlocBuilder<ProductCubit, ProductState>(
               builder: (context, state) {
                 if (state is ProductLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                  final crossAxisCount = ResponsiveLayout.gridColumns(
+                    context,
+                    portrait: 2,
+                    landscape: 3,
+                    wide: 4,
+                    desktop: 5,
+                  );
+                  return ProductGridShimmer(
+                    crossAxisCount: crossAxisCount,
+                    childAspectRatio: 0.72,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20.w,
+                      vertical: 10.h,
+                    ),
+                  );
                 } else if (state is ProductLoaded) {
                   if (state.products.isEmpty) {
                     return Center(
@@ -212,14 +228,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
             child: Icon(
               isSearch ? Icons.search_off_rounded : Icons.inventory_2_rounded,
               size: isLandscape && !isTablet
-                  ? 44
+                  ? 44.r
                   : isTablet
-                  ? 56
-                  : 64,
+                  ? 56.r
+                  : 64.r,
               color: AppColors.primary.withValues(alpha: 0.5),
             ),
           ),
-          SizedBox(height: isLandscape || isTablet ? 14 : 24),
+          SizedBox(height: isLandscape || isTablet ? 14.h : 24.h),
           Text(
             isSearch ? 'Produk tidak ditemukan' : 'Belum ada produk',
             style: TextStyle(
@@ -245,7 +261,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       ? AppStyles.subtitleStyle.copyWith(fontSize: 13.sp)
                       : AppStyles.subtitleStyle),
           ),
-          SizedBox(height: isLandscape || isTablet ? 14.h : 24),
+          SizedBox(height: isLandscape || isTablet ? 14.h : 24.h),
         ],
       ),
     );
@@ -273,7 +289,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               final String imagePath = user?.imagePath ?? '';
 
               return Container(
-                padding: const EdgeInsets.fromLTRB(24, 80, 24, 40),
+                padding: EdgeInsets.fromLTRB(24.w, 80.h, 24.w, 40.h),
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: AppColors.primary,
@@ -285,7 +301,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CircleAvatar(
-                      radius: 35,
+                      radius: 35.r,
                       backgroundColor: Colors.white,
                       backgroundImage: imagePath.isNotEmpty
                           ? FileImage(File(FileHelper.getFullPath(imagePath)))
@@ -298,7 +314,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             )
                           : null,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
                     Text(
                       name,
                       style: TextStyle(
@@ -319,7 +335,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               );
             },
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20.h),
           _DrawerItem(
             icon: Icons.dashboard_rounded,
             title: 'Dashboard',
@@ -337,7 +353,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
             title: 'Riwayat Transaksi',
             onTap: () => {Navigator.pop(context), context.go('/order-history')},
           ),
-          const Divider(indent: 24, endIndent: 24, height: 40),
+          Divider(indent: 24.w, endIndent: 24.w, height: 40.h),
           _DrawerItem(
             icon: Icons.category_rounded,
             title: 'Manajemen Kategori',
@@ -348,7 +364,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
             title: 'Laporan Penjualan',
             onTap: () => {Navigator.pop(context), context.go('/sales-report')},
           ),
-          const Divider(indent: 24, endIndent: 24, height: 40),
+          Divider(indent: 24.w, endIndent: 24.w, height: 40.h),
           _DrawerItem(
             icon: Icons.person_outline_rounded,
             title: 'Edit Profil',
@@ -365,14 +381,22 @@ class _ProductListScreenState extends State<ProductListScreen> {
               context.push('/change-password'),
             },
           ),
-          const SizedBox(height: 20),
-          _DrawerItem(
-            icon: Icons.logout_rounded,
-            title: 'Logout',
-            color: AppColors.error,
-            onTap: () => context.read<AuthCubit>().logout(),
+          SizedBox(height: 20.h),
+          BlocBuilder<AuthCubit, AuthState>(
+            builder: (context, state) {
+              final isLoading = state is AuthLoading;
+              return _DrawerItem(
+                icon: Icons.logout_rounded,
+                title: 'Logout',
+                color: AppColors.error,
+                isLoading: isLoading,
+                onTap: isLoading
+                    ? () {}
+                    : () => context.read<AuthCubit>().logout(),
+              );
+            },
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
         ],
       ),
     );
@@ -404,6 +428,7 @@ class _PremiumProductCard extends StatelessWidget {
                         ? Image.file(
                             File(FileHelper.getFullPath(product.imagePath)),
                             fit: BoxFit.cover,
+                            cacheWidth: 350,
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
                                 color: AppColors.primary.withValues(
@@ -427,14 +452,14 @@ class _PremiumProductCard extends StatelessWidget {
                           ),
                   ),
                   Positioned(
-                    top: 8,
-                    right: 8,
+                    top: 8.h,
+                    right: 8.w,
                     child: _buildPopOptions(context),
                   ),
                   if (product.stock < 5)
                     Positioned(
-                      bottom: 8,
-                      left: 8,
+                      bottom: 8.h,
+                      left: 8.w,
                       child: Container(
                         padding: EdgeInsets.symmetric(
                           horizontal: 8.w,
@@ -458,7 +483,7 @@ class _PremiumProductCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: EdgeInsets.all(12.w),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -471,7 +496,7 @@ class _PremiumProductCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4.h),
                   Text(
                     CurrencyHelper.formatIdr(product.price),
                     style: TextStyle(
@@ -480,7 +505,18 @@ class _PremiumProductCard extends StatelessWidget {
                       fontSize: 14.sp,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 2.h),
+                  Text(
+                    'Modal: ${CurrencyHelper.formatIdr(product.costPrice)}',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 8.h),
                   Row(
                     children: [
                       const Spacer(),
@@ -580,6 +616,7 @@ class _DrawerItem extends StatelessWidget {
   final Color? color;
   final Color? accentColor;
   final bool isActive;
+  final bool isLoading;
 
   const _DrawerItem({
     required this.icon,
@@ -588,6 +625,7 @@ class _DrawerItem extends StatelessWidget {
     this.color,
     this.accentColor,
     this.isActive = false,
+    this.isLoading = false,
   });
 
   @override
@@ -610,6 +648,18 @@ class _DrawerItem extends StatelessWidget {
             fontSize: 16.sp,
           ),
         ),
+        trailing: isLoading
+            ? SizedBox(
+                width: 18.w,
+                height: 18.w,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.w,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    color ?? AppColors.primary,
+                  ),
+                ),
+              )
+            : null,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.r),
         ),

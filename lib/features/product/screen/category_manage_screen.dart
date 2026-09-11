@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/util/modern_dialog.dart';
 import 'package:pos/core/util/responsive_layout.dart';
 import '../cubit/category_cubit.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class CategoryManageScreen extends StatefulWidget {
   const CategoryManageScreen({super.key});
@@ -75,9 +74,9 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                     Icon(
                       Icons.category_outlined,
                       size: 64.r,
-                      color: AppColors.textSecondary.withOpacity(0.2),
+                      color: AppColors.textSecondary.withValues(alpha: 0.2),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
                     Text('Belum ada kategori', style: AppStyles.subtitleStyle),
                   ],
                 ),
@@ -96,7 +95,8 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                     child: ListView.separated(
                       padding: ResponsiveLayout.pagePadding(context),
                       itemCount: state.categories.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      separatorBuilder: (context, index) =>
+                          SizedBox(height: 12.h),
                       itemBuilder: (context, index) {
                         final category = state.categories[index];
                         final isGeneral = category.id == 'general';
@@ -107,7 +107,7 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(20.r),
                             border: Border.all(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withValues(alpha: 0.05),
                             ),
                           ),
                           child: Row(
@@ -115,7 +115,9 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                               Container(
                                 padding: EdgeInsets.all(12.w),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.1,
+                                  ),
                                   borderRadius: BorderRadius.circular(12.r),
                                 ),
                                 child: const Icon(
@@ -123,7 +125,7 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                                   color: AppColors.primary,
                                 ),
                               ),
-                              const SizedBox(width: 16),
+                              SizedBox(width: 16.w),
                               Expanded(
                                 child: Text(
                                   category.name,

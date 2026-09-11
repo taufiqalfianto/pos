@@ -12,6 +12,8 @@ class OrderCubit extends Cubit<OrderState> {
   final ProductRepository _productRepository;
 
   List<OrderItemModel> _cartItems = [];
+  List<OrderItemModel> get cartItems => List.unmodifiable(_cartItems);
+  double get cartTotal => _calculateTotal();
 
   OrderCubit(this._orderRepository, this._productRepository)
     : super(OrderInitial());
@@ -33,6 +35,7 @@ class OrderCubit extends Cubit<OrderState> {
         productId: item.productId,
         productName: item.productName,
         price: item.price,
+        costPrice: item.costPrice,
         quantity: item.quantity + 1,
       );
     } else {
@@ -47,6 +50,7 @@ class OrderCubit extends Cubit<OrderState> {
           productId: product.id,
           productName: product.name,
           price: product.price,
+          costPrice: product.costPrice,
           quantity: 1,
         ),
       );
@@ -65,6 +69,7 @@ class OrderCubit extends Cubit<OrderState> {
         productId: item.productId,
         productName: item.productName,
         price: item.price,
+        costPrice: item.costPrice,
         quantity: item.quantity - 1,
       );
     } else {
@@ -103,6 +108,7 @@ class OrderCubit extends Cubit<OrderState> {
       productId: item.productId,
       productName: item.productName,
       price: item.price,
+      costPrice: item.costPrice,
       quantity: quantity,
     );
     emit(OrderCartUpdated(List.from(_cartItems), _calculateTotal()));
@@ -156,7 +162,11 @@ class OrderCubit extends Cubit<OrderState> {
       final orders = await _orderRepository.getOrders();
       emit(OrderHistoryLoaded(orders));
     } catch (e, stackTrace) {
-      AppLogger.error('Gagal memuat riwayat order', error: e, stackTrace: stackTrace);
+      AppLogger.error(
+        'Gagal memuat riwayat order',
+        error: e,
+        stackTrace: stackTrace,
+      );
       emit(OrderError(e.toString()));
     }
   }

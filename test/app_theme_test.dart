@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/core/theme/app_theme.dart';
+import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/util/responsive_layout.dart';
 
 void main() {
   Widget buildApp() {
-    return ScreenUtilPlusInit(
+    return ScreenUtilInit(
       designSize: const Size(393, 852), // sama dengan lib/app.dart
       splitScreenMode: true,
       fontSizeResolver: (fontSize, instance) =>
-          fontSize *
-          AppBreakpointResolver.fontScaleFor(
-            instance.screenWidth,
-            instance.screenHeight,
-          ),
+          (fontSize *
+                  AppBreakpointResolver.fontScaleFor(
+                    instance.screenWidth,
+                    instance.screenHeight,
+                  ))
+              .toDouble(),
       builder: (context, child) => MaterialApp(
         theme: AppTheme.lightTheme(context),
         home: const Scaffold(
@@ -72,5 +74,19 @@ void main() {
     expect(tester.takeException(), isNull);
     tt = textThemeAt(tester);
     expect(tt.labelLarge?.fontSize, closeTo(13.3, 0.001));
+  });
+
+  testWidgets('theme memakai palet warna dari logo POS', (tester) async {
+    await pumpAt(tester, const Size(393, 852));
+
+    final ctx = tester.element(find.byType(FilledButton));
+    final colorScheme = Theme.of(ctx).colorScheme;
+
+    expect(colorScheme.primary, AppColors.primary);
+    expect(colorScheme.primaryContainer, AppColors.primarySoft);
+    expect(colorScheme.secondary, AppColors.secondary);
+    expect(colorScheme.secondaryContainer, AppColors.secondarySoft);
+    expect(colorScheme.tertiary, AppColors.tertiary);
+    expect(colorScheme.tertiaryContainer, AppColors.tertiarySoft);
   });
 }

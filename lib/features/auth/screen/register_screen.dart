@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pos/core/widgets/app_logo.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
@@ -9,7 +10,6 @@ import 'package:uuid/uuid.dart';
 import '../cubit/auth_cubit.dart';
 import '../data/model/user_model.dart';
 import '../cubit/auth_state.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -36,13 +36,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           }
         },
         child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [AppColors.primary, AppColors.primaryLight],
-            ),
-          ),
+          decoration: const BoxDecoration(gradient: AppColors.brandGradient),
           child: LayoutBuilder(
             builder: (context, constraints) {
               final isLandscape = constraints.maxWidth > constraints.maxHeight;
@@ -57,7 +51,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Expanded(
                       flex: 5,
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(20.0),
+                        padding: EdgeInsets.all(20.w),
                         child: _buildBrandPanel(),
                       ),
                     ),
@@ -65,11 +59,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       flex: 7,
                       child: Center(
                         child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(24.0),
+                          padding: EdgeInsets.all(24.w),
                           child: _buildAuthCard(
                             context,
-                            cardPadding: EdgeInsets.all(isTablet ? 24 : 28),
-                            iconSize: isTablet ? 40 : 44,
+                            cardPadding: EdgeInsets.all(isTablet ? 24.w : 28.w),
+                            iconSize: isTablet ? 40.r : 44.r,
                             titleFontSize: isTablet ? 24.sp : 28.sp,
                           ),
                         ),
@@ -90,11 +84,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(24.w),
         child: _buildAuthCard(
           context,
-          cardPadding: EdgeInsets.all(isTablet ? 28 : 32),
-          iconSize: isTablet ? 44 : 48,
+          cardPadding: EdgeInsets.all(isTablet ? 28.w : 32.w),
+          iconSize: isTablet ? 44.r : 48.r,
           titleFontSize: isTablet ? 28.sp : 32.sp,
         ),
       ),
@@ -110,21 +104,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: EdgeInsets.all(isTablet ? 16.sp : 20.sp),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: AppStyles.premiumShadow,
-            ),
-            child: Icon(
-              Icons.person_add_rounded,
-              size: 48.r,
-              color: AppColors.primary,
-            ),
-          ),
-          const SizedBox(height: 28),
-          SizedBox(height: isTablet ? 20 : 28),
+          AppLogo(size: 48.r + (isTablet ? 32.sp : 40.sp)),
+          SizedBox(height: 28.h),
+          SizedBox(height: isTablet ? 20.h : 28.h),
           Text(
             'Buat Akun',
             style: TextStyle(
@@ -136,7 +118,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               letterSpacing: -1.2,
             ),
           ),
-          SizedBox(height: isTablet ? 10 : 12),
+          SizedBox(height: isTablet ? 10.h : 12.h),
           Text(
             'Landscape memberi ruang lebih lega untuk mengisi data registrasi dengan nyaman.',
             style: TextStyle(
@@ -172,20 +154,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: EdgeInsets.all(isTablet ? 16 : 20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: AppStyles.premiumShadow,
-              ),
-              child: Icon(
-                Icons.person_add_rounded,
-                size: iconSize,
-                color: AppColors.primary,
-              ),
-            ),
-            SizedBox(height: isTablet ? 20 : 24),
+            AppLogo(size: iconSize + (isTablet ? 32.r : 40.r)),
+            SizedBox(height: isTablet ? 20.h : 24.h),
             Text(
               'Buat Akun',
               style: TextStyle(
@@ -203,7 +173,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     : (isTablet ? 12.sp : 16.sp),
               ),
             ),
-            SizedBox(height: isTablet ? 28 : 40),
+            SizedBox(height: isTablet ? 28.h : 40.h),
             TextFormField(
               controller: _nameController,
               decoration: const InputDecoration(
@@ -212,7 +182,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               validator: (val) => val!.isEmpty ? 'Nama harus diisi' : null,
             ),
-            SizedBox(height: isTablet ? 12 : 16),
+            SizedBox(height: isTablet ? 12.h : 16.h),
             TextFormField(
               controller: _usernameController,
               decoration: const InputDecoration(
@@ -221,7 +191,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               validator: (val) => val!.isEmpty ? 'Username harus diisi' : null,
             ),
-            SizedBox(height: isTablet ? 12 : 16),
+            SizedBox(height: isTablet ? 12.h : 16.h),
             TextFormField(
               controller: _passwordController,
               obscureText: !_isPasswordVisible,
@@ -244,10 +214,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 return null;
               },
             ),
-            SizedBox(height: isTablet ? 28 : 40),
+            SizedBox(height: isTablet ? 28.h : 40.h),
             SizedBox(
               width: double.infinity,
-              height: isTablet ? 52 : 60,
+              height: isTablet ? 52.h : 60.h,
               child: FilledButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
@@ -262,7 +232,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 },
                 style: FilledButton.styleFrom(
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(isTablet ? 16 : 20),
+                    borderRadius: BorderRadius.circular(isTablet ? 16.r : 20.r),
                   ),
                 ),
                 child: Text(
@@ -275,7 +245,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
             ),
-            SizedBox(height: isTablet ? 16 : 24),
+            SizedBox(height: isTablet ? 16.h : 24.h),
             TextButton(
               onPressed: () => context.go('/login'),
               child: const Text(

@@ -2,17 +2,18 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/currency_helper.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/helper/file_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
+import 'package:pos/core/widgets/loading_button_child.dart';
+import 'package:pos/core/widgets/shimmer_loading.dart';
 import 'package:pos/features/order/cubit/order_cubit.dart';
 import 'package:pos/features/order/cubit/order_state.dart';
 import 'package:pos/features/product/cubit/product_cubit.dart';
 import 'package:pos/features/product/data/model/product_model.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class OrderScreen extends StatefulWidget {
   const OrderScreen({super.key});
@@ -82,7 +83,7 @@ class _OrderScreenState extends State<OrderScreen> {
             return Row(
               children: [
                 Expanded(child: _buildProductGrid(context, productColumns)),
-                const VerticalDivider(width: 1, color: Colors.black12),
+                VerticalDivider(width: 1.w, color: Colors.black12),
                 Expanded(child: _buildGlassCart(context)),
               ],
             );
@@ -99,7 +100,7 @@ class _OrderScreenState extends State<OrderScreen> {
     return Column(
       children: [
         Padding(
-          padding: EdgeInsets.all(isLandscape || isTablet ? 12 : 20),
+          padding: EdgeInsets.all(isLandscape || isTablet ? 12.w : 20.w),
           child: TextField(
             onChanged: (val) =>
                 context.read<ProductCubit>().searchProducts(val),
@@ -120,23 +121,36 @@ class _OrderScreenState extends State<OrderScreen> {
           child: BlocBuilder<ProductCubit, ProductState>(
             builder: (context, state) {
               if (state is ProductLoading) {
-                return const Center(child: CircularProgressIndicator());
+                return ProductGridShimmer(
+                  crossAxisCount: crossAxisCount,
+                  childAspectRatio: isLandscape && !isTablet
+                      ? 1.6
+                      : (isTablet ? 0.95 : 0.82),
+                  padding: EdgeInsets.fromLTRB(
+                    isLandscape || isTablet ? 12.w : 20.w,
+                    0,
+                    isLandscape || isTablet ? 12.w : 20.w,
+                    isLandscape || isTablet ? 12.h : 20.h,
+                  ),
+                  crossAxisSpacing: isLandscape || isTablet ? 10.w : 12.w,
+                  mainAxisSpacing: isLandscape || isTablet ? 10.h : 12.h,
+                );
               }
               if (state is ProductLoaded) {
                 return GridView.builder(
                   padding: EdgeInsets.fromLTRB(
-                    isLandscape || isTablet ? 12 : 20,
+                    isLandscape || isTablet ? 12.w : 20.w,
                     0,
-                    isLandscape || isTablet ? 12 : 20,
-                    isLandscape || isTablet ? 12 : 20,
+                    isLandscape || isTablet ? 12.w : 20.w,
+                    isLandscape || isTablet ? 12.h : 20.h,
                   ),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: crossAxisCount,
                     childAspectRatio: isLandscape && !isTablet
                         ? 1.6
                         : (isTablet ? 0.95 : 0.82),
-                    crossAxisSpacing: isLandscape || isTablet ? 10 : 12,
-                    mainAxisSpacing: isLandscape || isTablet ? 10 : 12,
+                    crossAxisSpacing: isLandscape || isTablet ? 10.w : 12.w,
+                    mainAxisSpacing: isLandscape || isTablet ? 10.h : 12.h,
                   ),
                   itemCount: state.products.length,
                   itemBuilder: (context, index) {
@@ -157,24 +171,21 @@ class _OrderScreenState extends State<OrderScreen> {
     final isTablet = ResponsiveLayout.of(context).isTablet;
 
     return Container(
-      // margin: EdgeInsets.all(compact ? 10 : 20),
       decoration: AppStyles.glassDecoration(
         borderRadius: compact ? 12 : (isLandscape || isTablet ? 24 : 32),
       ),
       clipBehavior: Clip.antiAlias,
       child: BlocBuilder<OrderCubit, OrderState>(
         builder: (context, state) {
+          final orderCubit = context.read<OrderCubit>();
           final items = state is OrderCartUpdated
               ? state.items
-              : (context.read<OrderCubit>().state is OrderCartUpdated
-                    ? (context.read<OrderCubit>().state as OrderCartUpdated)
-                          .items
-                    : []);
+              : orderCubit.cartItems;
 
           return Scrollbar(
             controller: _cartScrollController,
             thumbVisibility: true,
-            thickness: 4,
+            thickness: 4.w,
             radius: Radius.circular(8.r),
             child: ListView(
               controller: _cartScrollController,
@@ -208,10 +219,10 @@ class _OrderScreenState extends State<OrderScreen> {
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        compact ? 16 : (isLandscape || isTablet ? 18 : 24),
-        compact ? 16 : (isLandscape || isTablet ? 18 : 24),
-        compact ? 16 : (isLandscape || isTablet ? 18 : 24),
-        isLandscape || isTablet ? 8 : 12,
+        compact ? 16.w : (isLandscape || isTablet ? 18.w : 24.w),
+        compact ? 16.h : (isLandscape || isTablet ? 18.h : 24.h),
+        compact ? 16.w : (isLandscape || isTablet ? 18.w : 24.w),
+        isLandscape || isTablet ? 8.h : 12.h,
       ),
       child: Row(
         children: [
@@ -227,8 +238,8 @@ class _OrderScreenState extends State<OrderScreen> {
           const Spacer(),
           Container(
             padding: EdgeInsets.symmetric(
-              horizontal: isLandscape || isTablet ? 8 : 10,
-              vertical: isLandscape || isTablet ? 3 : 4,
+              horizontal: isLandscape || isTablet ? 8.w : 10.w,
+              vertical: isLandscape || isTablet ? 3.h : 4.h,
             ),
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.1),
@@ -236,14 +247,9 @@ class _OrderScreenState extends State<OrderScreen> {
             ),
             child: BlocBuilder<OrderCubit, OrderState>(
               builder: (context, state) {
-                int count = 0;
+                int count = context.read<OrderCubit>().cartItems.length;
                 if (state is OrderCartUpdated) {
                   count = state.items.length;
-                } else if (context.read<OrderCubit>().state
-                    is OrderCartUpdated) {
-                  count = (context.read<OrderCubit>().state as OrderCartUpdated)
-                      .items
-                      .length;
                 }
                 return Text(
                   '$count item',
@@ -267,8 +273,8 @@ class _OrderScreenState extends State<OrderScreen> {
 
     return SizedBox(
       height: compact
-          ? (isLandscape || isTablet ? 108 : 132)
-          : (isLandscape || isTablet ? 120 : 150),
+          ? (isLandscape || isTablet ? 108.h : 132.h)
+          : (isLandscape || isTablet ? 120.h : 150.h),
       child: Center(
         child: FittedBox(
           fit: BoxFit.scaleDown,
@@ -278,14 +284,14 @@ class _OrderScreenState extends State<OrderScreen> {
               Icon(
                 Icons.shopping_basket_outlined,
                 size: compact
-                    ? (isLandscape || isTablet ? 28 : 32)
-                    : (isLandscape || isTablet ? 36 : 48),
+                    ? (isLandscape || isTablet ? 28.r : 32.r)
+                    : (isLandscape || isTablet ? 36.r : 48.r),
                 color: AppColors.textSecondary.withValues(alpha: 0.3),
               ),
               SizedBox(
                 height: compact
-                    ? (isLandscape || isTablet ? 6 : 8)
-                    : (isLandscape || isTablet ? 8 : 16),
+                    ? (isLandscape || isTablet ? 6.h : 8.h)
+                    : (isLandscape || isTablet ? 8.h : 16.h),
               ),
               Text(
                 'Belum ada item',
@@ -306,16 +312,14 @@ class _OrderScreenState extends State<OrderScreen> {
 
     return BlocBuilder<OrderCubit, OrderState>(
       builder: (context, state) {
-        double total = 0.0;
-        bool hasItems = false;
+        final orderCubit = context.read<OrderCubit>();
+        double total = orderCubit.cartTotal;
+        bool hasItems = orderCubit.cartItems.isNotEmpty;
+        final isCheckingOut = state is OrderLoading && hasItems;
 
         if (state is OrderCartUpdated) {
           total = state.total;
           hasItems = state.items.isNotEmpty;
-        } else if (context.read<OrderCubit>().state is OrderCartUpdated) {
-          final s = context.read<OrderCubit>().state as OrderCartUpdated;
-          total = s.total;
-          hasItems = s.items.isNotEmpty;
         }
 
         return LayoutBuilder(
@@ -324,13 +328,13 @@ class _OrderScreenState extends State<OrderScreen> {
 
             return Container(
               padding: EdgeInsets.all(
-                compact ? 16 : (isLandscape || isTablet ? 18 : 24),
+                compact ? 16.w : (isLandscape || isTablet ? 18.w : 24.w),
               ),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(compact ? 24 : 32),
-                  bottomRight: Radius.circular(compact ? 24 : 32),
+                  bottomLeft: Radius.circular(compact ? 24.r : 32.r),
+                  bottomRight: Radius.circular(compact ? 24.r : 32.r),
                 ),
               ),
               child: Column(
@@ -375,7 +379,7 @@ class _OrderScreenState extends State<OrderScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12.w),
                         Flexible(
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
@@ -394,24 +398,27 @@ class _OrderScreenState extends State<OrderScreen> {
                         ),
                       ],
                     ),
-                  SizedBox(height: compact ? 16 : 24),
+                  SizedBox(height: compact ? 16.h : 24.h),
                   SizedBox(
                     width: double.infinity,
-                    height: compact ? 45 : (isLandscape || isTablet ? 45 : 40),
+                    height: compact
+                        ? 45.h
+                        : (isLandscape || isTablet ? 45.h : 40.h),
                     child: FilledButton(
-                      onPressed: hasItems
+                      onPressed: hasItems && !isCheckingOut
                           ? () => context.read<OrderCubit>().checkout()
                           : null,
                       style: FilledButton.styleFrom(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
-                            compact ? 14 : 18,
+                            compact ? 14.r : 18.r,
                           ),
                         ),
                       ),
-                      child: Text(
-                        compact ? 'BAYAR' : 'BAYAR SEKARANG',
-                        style: const TextStyle(
+                      child: LoadingButtonChild(
+                        isLoading: isCheckingOut,
+                        label: compact ? 'BAYAR' : 'BAYAR SEKARANG',
+                        textStyle: const TextStyle(
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1,
                         ),
@@ -444,8 +451,8 @@ class _OrderScreenState extends State<OrderScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 100,
-                    height: 100,
+                    width: 100.w,
+                    height: 100.w,
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
@@ -456,7 +463,7 @@ class _OrderScreenState extends State<OrderScreen> {
                       color: AppColors.primary,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24.h),
                   Text(
                     'TRANSAKSI BERHASIL',
                     style: TextStyle(
@@ -467,19 +474,19 @@ class _OrderScreenState extends State<OrderScreen> {
                       fontFamily: 'Poppins',
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  SizedBox(height: 40.h),
                   SizedBox(
-                    width: 200,
+                    width: 200.w,
                     height: ResponsiveLayout.adaptiveValue(
                       context,
                       portrait: 50,
                       landscape: 44,
                       tablet: 44,
-                    ),
+                    ).h,
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.white, width: 2),
+                        side: BorderSide(color: Colors.white, width: 2.w),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(25.r),
@@ -551,6 +558,7 @@ class _OrderProductItem extends StatelessWidget {
                         ? Image.file(
                             File(FileHelper.getFullPath(product.imagePath)),
                             fit: BoxFit.cover,
+                            cacheWidth: 350,
                             errorBuilder: (context, error, stackTrace) => Icon(
                               Icons.shopping_bag_rounded,
                               size: 28.r,
@@ -566,8 +574,8 @@ class _OrderProductItem extends StatelessWidget {
                 ),
                 if (isOutOfStock)
                   Positioned(
-                    top: 2,
-                    left: 2,
+                    top: 2.h,
+                    left: 2.w,
                     child: Container(
                       padding: EdgeInsets.symmetric(
                         horizontal: 4.w,
@@ -649,7 +657,7 @@ class _OrderProductItem extends StatelessWidget {
       children: [
         Expanded(
           child: Container(
-            padding: EdgeInsets.all(isTablet ? 6 : 8),
+            padding: EdgeInsets.all(isTablet ? 6.w : 8.w),
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.03),
               borderRadius: BorderRadius.vertical(
@@ -665,6 +673,7 @@ class _OrderProductItem extends StatelessWidget {
                         ? Image.file(
                             File(FileHelper.getFullPath(product.imagePath)),
                             fit: BoxFit.cover,
+                            cacheWidth: 350,
                             errorBuilder: (context, error, stackTrace) => Icon(
                               Icons.shopping_bag_rounded,
                               size: 32.r,
@@ -682,8 +691,8 @@ class _OrderProductItem extends StatelessWidget {
                 ),
                 if (isOutOfStock)
                   Positioned(
-                    top: 6,
-                    right: 6,
+                    top: 6.h,
+                    right: 6.w,
                     child: Container(
                       padding: EdgeInsets.symmetric(
                         horizontal: 6.w,
@@ -820,7 +829,7 @@ class _CartItemTile extends StatelessWidget {
               ),
               Padding(
                 padding: EdgeInsets.symmetric(
-                  horizontal: isLandscape || isTablet ? 8 : 12,
+                  horizontal: isLandscape || isTablet ? 8.w : 12.w,
                 ),
                 child: Text(
                   '${item.quantity}',
@@ -852,14 +861,14 @@ class _CartItemTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(isLandscape || isTablet ? 3 : 4),
+        padding: EdgeInsets.all(isLandscape || isTablet ? 3.w : 4.w),
         decoration: BoxDecoration(
           color: AppColors.background,
           borderRadius: BorderRadius.circular(8.r),
         ),
         child: Icon(
           icon,
-          size: isLandscape || isTablet ? 18 : 20,
+          size: isLandscape || isTablet ? 18.r : 20.r,
           color: AppColors.primary,
         ),
       ),

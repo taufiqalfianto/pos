@@ -4,6 +4,7 @@ class ProductModel extends Equatable {
   final String id;
   final String name;
   final double price;
+  final double costPrice;
   final String imagePath;
   final int stock;
   final String description;
@@ -15,6 +16,7 @@ class ProductModel extends Equatable {
     required this.id,
     required this.name,
     required this.price,
+    this.costPrice = 0,
     required this.imagePath,
     this.stock = 0,
     this.description = '',
@@ -31,6 +33,7 @@ class ProductModel extends Equatable {
       id: map['id'],
       name: map['name'],
       price: (map['price'] as num).toDouble(),
+      costPrice: (map['cost_price'] as num?)?.toDouble() ?? 0,
       imagePath: map['image_path'] ?? '',
       stock: map['stock'] ?? 0,
       description: map['description'] ?? '',
@@ -45,6 +48,7 @@ class ProductModel extends Equatable {
       'id': id,
       'name': name,
       'price': price,
+      'cost_price': costPrice,
       'image_path': imagePath,
       'stock': stock,
       'description': description,
@@ -58,6 +62,7 @@ class ProductModel extends Equatable {
       'id': id,
       'name': name,
       'price': price,
+      'cost_price': costPrice,
       'imageUrl': imagePath,
       'stock': stock,
       'description': description,
@@ -68,6 +73,7 @@ class ProductModel extends Equatable {
   ProductModel copyWith({
     String? name,
     double? price,
+    double? costPrice,
     String? imagePath,
     int? stock,
     String? description,
@@ -79,6 +85,7 @@ class ProductModel extends Equatable {
       id: id,
       name: name ?? this.name,
       price: price ?? this.price,
+      costPrice: costPrice ?? this.costPrice,
       imagePath: imagePath ?? this.imagePath,
       stock: stock ?? this.stock,
       description: description ?? this.description,
@@ -93,6 +100,7 @@ class ProductModel extends Equatable {
     id,
     name,
     price,
+    costPrice,
     imagePath,
     stock,
     description,

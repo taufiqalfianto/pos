@@ -19,7 +19,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 9,
+      version: 11,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -34,11 +34,17 @@ class DatabaseHelper {
       await _createUsersTable(db);
     }
     if (oldVersion < 4) {
-      await db.execute(
-        'ALTER TABLE products ADD COLUMN stock INTEGER NOT NULL DEFAULT 0',
+      await _addColumnIfMissing(
+        db,
+        tableName: 'products',
+        columnName: 'stock',
+        definition: 'INTEGER NOT NULL DEFAULT 0',
       );
-      await db.execute(
-        'ALTER TABLE products ADD COLUMN description TEXT NOT NULL DEFAULT ""',
+      await _addColumnIfMissing(
+        db,
+        tableName: 'products',
+        columnName: 'description',
+        definition: 'TEXT NOT NULL DEFAULT ""',
       );
     }
     if (oldVersion < 5) {
@@ -49,20 +55,48 @@ class DatabaseHelper {
     }
     if (oldVersion < 7) {
       await _createCategoriesTable(db);
-      await db.execute('ALTER TABLE products ADD COLUMN category_id TEXT');
+      await _addColumnIfMissing(
+        db,
+        tableName: 'products',
+        columnName: 'category_id',
+        definition: 'TEXT',
+      );
       // Set default category for existing products
-      await db.insert('categories', {'id': 'general', 'name': 'Umum'});
+      await db.insert('categories', {
+        'id': 'general',
+        'name': 'Umum',
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
       await db.execute(
         "UPDATE products SET category_id = 'general' WHERE category_id IS NULL",
       );
     }
     if (oldVersion < 8) {
-      await db.execute('ALTER TABLE users ADD COLUMN image_path TEXT');
+      await _addColumnIfMissing(
+        db,
+        tableName: 'users',
+        columnName: 'image_path',
+        definition: 'TEXT',
+      );
     }
     if (oldVersion < 9) {
-      await db.execute('ALTER TABLE orders ADD COLUMN day INTEGER');
-      await db.execute('ALTER TABLE orders ADD COLUMN month INTEGER');
-      await db.execute('ALTER TABLE orders ADD COLUMN year INTEGER');
+      await _addColumnIfMissing(
+        db,
+        tableName: 'orders',
+        columnName: 'day',
+        definition: 'INTEGER NOT NULL DEFAULT 1',
+      );
+      await _addColumnIfMissing(
+        db,
+        tableName: 'orders',
+        columnName: 'month',
+        definition: 'INTEGER NOT NULL DEFAULT 1',
+      );
+      await _addColumnIfMissing(
+        db,
+        tableName: 'orders',
+        columnName: 'year',
+        definition: 'INTEGER NOT NULL DEFAULT 1970',
+      );
 
       // Populate existing orders with day, month, year from created_at
       final List<Map<String, dynamic>> orders = await db.query('orders');
@@ -79,6 +113,39 @@ class DatabaseHelper {
           whereArgs: [order['id']],
         );
       }
+    }
+    if (oldVersion < 10) {
+      await _addColumnIfMissing(
+        db,
+        tableName: 'products',
+        columnName: 'cost_price',
+        definition: 'REAL NOT NULL DEFAULT 0',
+      );
+      await _addColumnIfMissing(
+        db,
+        tableName: 'order_items',
+        columnName: 'cost_price',
+        definition: 'REAL NOT NULL DEFAULT 0',
+      );
+    }
+    if (oldVersion < 11) {
+      await _createIndexes(db);
+    }
+  }
+
+  Future<void> _addColumnIfMissing(
+    Database db, {
+    required String tableName,
+    required String columnName,
+    required String definition,
+  }) async {
+    final columns = await db.rawQuery('PRAGMA table_info($tableName)');
+    final hasColumn = columns.any((column) => column['name'] == columnName);
+
+    if (!hasColumn) {
+      await db.execute(
+        'ALTER TABLE $tableName ADD COLUMN $columnName $definition',
+      );
     }
   }
 
@@ -97,6 +164,7 @@ CREATE TABLE products (
   id $idType, 
   name $textType,
   price $doubleType,
+  cost_price $doubleType,
   image_path $textType,
   stock $intType,
   description $textType,
@@ -114,8 +182,35 @@ CREATE TABLE products (
     // Table: Stock Reports
     await _createStockReportsTable(db);
 
+    // Create Indexes
+    await _createIndexes(db);
+
     // Initial Data
-    await db.insert('categories', {'id': 'general', 'name': 'Umum'});
+    await db.insert('categories', {
+      'id': 'general',
+      'name': 'Umum',
+    }, conflictAlgorithm: ConflictAlgorithm.ignore);
+  }
+
+  Future _createIndexes(Database db) async {
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items (order_id)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders (created_at DESC)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_orders_date ON orders (year, month, day)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_products_category ON products (category_id)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_products_synced ON products (is_synced)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_stock_reports_product ON stock_reports (product_id)',
+    );
   }
 
   Future _createUsersTable(Database db) async {
@@ -157,6 +252,7 @@ CREATE TABLE order_items (
   product_id $textType,
   product_name $textType,
   price $doubleType,
+  cost_price $doubleType,
   quantity $intType,
   FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE
 )

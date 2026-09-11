@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/util/responsive_layout.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AppTheme {
   static ThemeData lightTheme(BuildContext context) {
@@ -16,14 +16,27 @@ class AppTheme {
     // (AppBreakpointResolver.fontScaleFor).
     final base = GoogleFonts.poppinsTextTheme();
 
+    final colorScheme = ColorScheme.light(
+      primary: AppColors.primary,
+      onPrimary: Colors.white,
+      primaryContainer: AppColors.primarySoft,
+      onPrimaryContainer: AppColors.primaryDark,
+      secondary: AppColors.secondary,
+      onSecondary: Colors.white,
+      secondaryContainer: AppColors.secondarySoft,
+      onSecondaryContainer: AppColors.secondaryDark,
+      tertiary: AppColors.tertiary,
+      onTertiary: AppColors.textPrimary,
+      tertiaryContainer: AppColors.tertiarySoft,
+      onTertiaryContainer: AppColors.tertiaryDark,
+      error: AppColors.error,
+      surface: AppColors.surface,
+      onSurface: AppColors.textPrimary,
+    );
+
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
-        primary: AppColors.primary,
-        secondary: AppColors.accent,
-        surface: AppColors.background,
-      ),
+      colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.background,
       textTheme: base.copyWith(
         displayLarge: AppStyles.titleStyle,
@@ -60,14 +73,15 @@ class AppTheme {
           borderRadius: BorderRadius.circular(24.r),
         ),
         color: Colors.white,
+        surfaceTintColor: AppColors.primarySoft,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
         isDense: true,
         contentPadding: EdgeInsets.symmetric(
-          horizontal: isLandscape || isTablet ? 16 : 20,
-          vertical: isLandscape || isTablet ? 10 : 16,
+          horizontal: isLandscape || isTablet ? 16.w : 20.w,
+          vertical: isLandscape || isTablet ? 10.h : 16.h,
         ),
         prefixIconColor: AppColors.textSecondary,
         suffixIconColor: AppColors.textSecondary,
@@ -82,7 +96,38 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18.r),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          borderSide: BorderSide(color: AppColors.primary, width: 2.w),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: AppColors.primarySoft,
+          disabledForegroundColor: AppColors.textSecondary,
+        ),
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          side: const BorderSide(color: AppColors.primary),
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        indicatorColor: AppColors.primarySoft,
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => IconThemeData(
+            color: states.contains(WidgetState.selected)
+                ? AppColors.primary
+                : AppColors.textSecondary,
+          ),
         ),
       ),
       visualDensity: (isLandscape || isTablet)

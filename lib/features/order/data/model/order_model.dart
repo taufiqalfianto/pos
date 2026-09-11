@@ -4,26 +4,32 @@ class OrderItemModel extends Equatable {
   final String productId;
   final String productName;
   final double price;
+  final double costPrice;
   final int quantity;
 
   const OrderItemModel({
     required this.productId,
     required this.productName,
     required this.price,
+    this.costPrice = 0,
     required this.quantity,
   });
 
   double get subtotal => price * quantity;
+  double get totalCost => costPrice * quantity;
+  double get profit => subtotal - totalCost;
 
   OrderItemModel copyWith({
     String? productName,
     double? price,
+    double? costPrice,
     int? quantity,
   }) {
     return OrderItemModel(
       productId: productId,
       productName: productName ?? this.productName,
       price: price ?? this.price,
+      costPrice: costPrice ?? this.costPrice,
       quantity: quantity ?? this.quantity,
     );
   }
@@ -34,6 +40,7 @@ class OrderItemModel extends Equatable {
       'product_id': productId,
       'product_name': productName,
       'price': price,
+      'cost_price': costPrice,
       'quantity': quantity,
     };
   }
@@ -43,12 +50,19 @@ class OrderItemModel extends Equatable {
       productId: map['product_id'],
       productName: map['product_name'],
       price: (map['price'] as num).toDouble(),
+      costPrice: (map['cost_price'] as num?)?.toDouble() ?? 0,
       quantity: map['quantity'],
     );
   }
 
   @override
-  List<Object?> get props => [productId, productName, price, quantity];
+  List<Object?> get props => [
+    productId,
+    productName,
+    price,
+    costPrice,
+    quantity,
+  ];
 }
 
 class OrderModel extends Equatable {

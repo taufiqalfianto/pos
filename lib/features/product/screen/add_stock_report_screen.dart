@@ -8,7 +8,7 @@ import '../cubit/stock_report_cubit.dart';
 import '../data/model/product_model.dart';
 import '../data/model/stock_report_model.dart';
 import '../cubit/product_cubit.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AddStockReportScreen extends StatefulWidget {
   final ProductModel product;
@@ -77,7 +77,7 @@ class _AddStockReportScreenState extends State<AddStockReportScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _buildProductInfo(),
-                        SizedBox(height: isLandscape ? 24 : 32),
+                        SizedBox(height: isLandscape ? 24.h : 32.h),
                         Text(
                           'Berapa jumlah stok fisik yang tersedia?',
                           style: TextStyle(
@@ -85,7 +85,7 @@ class _AddStockReportScreenState extends State<AddStockReportScreen> {
                             fontSize: 16.sp,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16.h),
                         TextFormField(
                           controller: _countController,
                           keyboardType: TextInputType.number,
@@ -103,7 +103,7 @@ class _AddStockReportScreenState extends State<AddStockReportScreen> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24.h),
                         Text(
                           'Catatan (Opsional)',
                           style: TextStyle(
@@ -111,7 +111,7 @@ class _AddStockReportScreenState extends State<AddStockReportScreen> {
                             fontSize: 16.sp,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16.h),
                         TextFormField(
                           controller: _noteController,
                           maxLines: 4,
@@ -121,14 +121,14 @@ class _AddStockReportScreenState extends State<AddStockReportScreen> {
                             prefixIcon: Icon(Icons.note_alt_rounded),
                           ),
                         ),
-                        const SizedBox(height: 48),
+                        SizedBox(height: 48.h),
                         SizedBox(
                           height: ResponsiveLayout.adaptiveValue(
                             context,
                             portrait: 60,
                             landscape: 52,
                             tablet: 52,
-                          ),
+                          ).h,
                           child: FilledButton(
                             onPressed: _submit,
                             style: FilledButton.styleFrom(
@@ -161,13 +161,13 @@ class _AddStockReportScreenState extends State<AddStockReportScreen> {
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.05),
+        color: AppColors.primary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(24.r),
       ),
       child: Row(
         children: [
           const Icon(Icons.info_outline_rounded, color: AppColors.primary),
-          const SizedBox(width: 16),
+          SizedBox(width: 16.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

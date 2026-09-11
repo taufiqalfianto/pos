@@ -51,19 +51,26 @@ class OrderRepository {
       orderBy: 'created_at DESC',
     );
 
-    List<OrderModel> orders = [];
-    for (var map in ordersMap) {
-      final List<Map<String, dynamic>> itemsMap = await db.query(
-        'order_items',
-        where: 'order_id = ?',
-        whereArgs: [map['id']],
-      );
+    if (ordersMap.isEmpty) return [];
 
-      final items = itemsMap.map((i) => OrderItemModel.fromMap(i)).toList();
-      orders.add(OrderModel.fromMap(map, items));
+    final List<Map<String, dynamic>> allItemsMap = await db.query(
+      'order_items',
+    );
+
+    final Map<String, List<OrderItemModel>> itemsByOrderId = {};
+    for (final itemMap in allItemsMap) {
+      final orderId = itemMap['order_id'] as String?;
+      if (orderId != null) {
+        final item = OrderItemModel.fromMap(itemMap);
+        (itemsByOrderId[orderId] ??= []).add(item);
+      }
     }
 
-    return orders;
+    return ordersMap.map((map) {
+      final orderId = map['id'] as String;
+      final items = itemsByOrderId[orderId] ?? [];
+      return OrderModel.fromMap(map, items);
+    }).toList();
   }
 
   // Sales Report Aggregation
@@ -79,27 +86,41 @@ class OrderRepository {
     List<dynamic> whereArgs = [];
 
     if (period == 'daily') {
-      whereClause = 'WHERE day = ? AND month = ? AND year = ?';
+      whereClause = 'WHERE o.day = ? AND o.month = ? AND o.year = ?';
       whereArgs = [day, month, year];
     } else if (period == 'monthly') {
-      whereClause = 'WHERE month = ? AND year = ?';
+      whereClause = 'WHERE o.month = ? AND o.year = ?';
       whereArgs = [month, year];
     } else if (period == 'yearly') {
       // Future proofing
-      whereClause = 'WHERE year = ?';
+      whereClause = 'WHERE o.year = ?';
       whereArgs = [year];
     }
 
-    final totalSalesResult = await db.rawQuery(
-      'SELECT COUNT(*) as count, SUM(total_price) as revenue FROM orders $whereClause',
-      whereArgs,
-    );
+    final totalSalesResult = await db.rawQuery('''
+      SELECT
+        COUNT(DISTINCT o.id) as count,
+        COALESCE(SUM(oi.price * oi.quantity), 0) as revenue,
+        COALESCE(SUM(oi.cost_price * oi.quantity), 0) as cost,
+        COALESCE(SUM((oi.price - oi.cost_price) * oi.quantity), 0) as profit
+      FROM orders o
+      LEFT JOIN order_items oi ON oi.order_id = o.id
+      $whereClause
+    ''', whereArgs);
     final totalSalesCount = totalSalesResult.first['count'] as int? ?? 0;
     final totalRevenue =
         (totalSalesResult.first['revenue'] as num?)?.toDouble() ?? 0.0;
+    final totalCost =
+        (totalSalesResult.first['cost'] as num?)?.toDouble() ?? 0.0;
+    final totalProfit =
+        (totalSalesResult.first['profit'] as num?)?.toDouble() ?? 0.0;
 
     final categorySalesResult = await db.rawQuery('''
-      SELECT c.name as category_name, SUM(oi.price * oi.quantity) as revenue
+      SELECT
+        c.name as category_name,
+        COALESCE(SUM(oi.price * oi.quantity), 0) as revenue,
+        COALESCE(SUM(oi.cost_price * oi.quantity), 0) as cost,
+        COALESCE(SUM((oi.price - oi.cost_price) * oi.quantity), 0) as profit
       FROM order_items oi
       JOIN orders o ON oi.order_id = o.id
       JOIN products p ON oi.product_id = p.id
@@ -111,6 +132,8 @@ class OrderRepository {
     return {
       'total_orders': totalSalesCount,
       'total_revenue': totalRevenue,
+      'total_cost': totalCost,
+      'total_profit': totalProfit,
       'category_sales': categorySalesResult,
     };
   }

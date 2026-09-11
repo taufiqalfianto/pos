@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:pos/core/widgets/app_logo.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos/features/auth/cubit/auth_cubit.dart';
 import 'package:pos/features/auth/cubit/auth_state.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/util/responsive_layout.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -74,13 +74,7 @@ class _SplashScreenState extends State<SplashScreen>
     return Scaffold(
       body: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [AppColors.primary, AppColors.primaryLight],
-          ),
-        ),
+        decoration: const BoxDecoration(gradient: AppColors.brandGradient),
         child: AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {
@@ -102,19 +96,7 @@ class _SplashScreenState extends State<SplashScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                padding: EdgeInsets.all(24.r),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: AppStyles.premiumShadow,
-                ),
-                child: Icon(
-                  Icons.shopping_cart_checkout_rounded,
-                  size: 72.r,
-                  color: AppColors.primary,
-                ),
-              ),
+              AppLogo(size: 120.r),
               SizedBox(height: 32.h),
               Text(
                 'PREMIUM POS',
@@ -130,7 +112,7 @@ class _SplashScreenState extends State<SplashScreen>
                 'High-Performance Retail Solution',
                 style: TextStyle(
                   fontSize: 16.sp,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.5,
                 ),
@@ -154,7 +136,7 @@ class _SplashScreenState extends State<SplashScreen>
                     child: Text(
                       'Version $version',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w500,
                       ),
@@ -185,19 +167,7 @@ class _SplashScreenState extends State<SplashScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: EdgeInsets.all(20.r),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: AppStyles.premiumShadow,
-                        ),
-                        child: Icon(
-                          Icons.shopping_cart_checkout_rounded,
-                          size: 56.r,
-                          color: AppColors.primary,
-                        ),
-                      ),
+                      AppLogo(size: 96.r),
                       SizedBox(height: 20.h),
                       Text(
                         'PREMIUM POS',
@@ -213,14 +183,14 @@ class _SplashScreenState extends State<SplashScreen>
                         'High-Performance Retail Solution',
                         style: TextStyle(
                           fontSize: 14.sp,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 24),
+                SizedBox(width: 24.w),
                 Expanded(
                   flex: 3,
                   child: Column(
@@ -244,7 +214,7 @@ class _SplashScreenState extends State<SplashScreen>
                           return Text(
                             'Version $version',
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
+                              color: Colors.white.withValues(alpha: 0.7),
                               fontSize: 12.sp,
                               fontWeight: FontWeight.w500,
                             ),

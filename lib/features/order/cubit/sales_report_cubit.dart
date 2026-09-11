@@ -18,6 +18,8 @@ class SalesReportLoading extends SalesReportState {}
 class SalesReportLoaded extends SalesReportState {
   final int totalOrders;
   final double totalRevenue;
+  final double totalCost;
+  final double totalProfit;
   final List<Map<String, dynamic>> categorySales;
   final SalesReportPeriod period;
   final DateTime selectedDate;
@@ -25,6 +27,8 @@ class SalesReportLoaded extends SalesReportState {
   const SalesReportLoaded({
     required this.totalOrders,
     required this.totalRevenue,
+    required this.totalCost,
+    required this.totalProfit,
     required this.categorySales,
     required this.period,
     required this.selectedDate,
@@ -34,6 +38,8 @@ class SalesReportLoaded extends SalesReportState {
   List<Object?> get props => [
     totalOrders,
     totalRevenue,
+    totalCost,
+    totalProfit,
     categorySales,
     period,
     selectedDate,
@@ -53,6 +59,17 @@ class SalesReportCubit extends Cubit<SalesReportState> {
 
   SalesReportCubit(this._repository) : super(SalesReportInitial());
 
+  Future<void> refreshCurrentReport() {
+    final currentState = state;
+    if (currentState is SalesReportLoaded) {
+      return loadSalesReport(
+        period: currentState.period,
+        date: currentState.selectedDate,
+      );
+    }
+    return loadSalesReport();
+  }
+
   Future<void> loadSalesReport({
     SalesReportPeriod period = SalesReportPeriod.daily,
     DateTime? date,
@@ -70,6 +87,8 @@ class SalesReportCubit extends Cubit<SalesReportState> {
         SalesReportLoaded(
           totalOrders: report['total_orders'],
           totalRevenue: report['total_revenue'],
+          totalCost: report['total_cost'],
+          totalProfit: report['total_profit'],
           categorySales: List<Map<String, dynamic>>.from(
             report['category_sales'],
           ),

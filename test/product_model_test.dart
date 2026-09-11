@@ -7,6 +7,7 @@ void main() {
       id: 'p1',
       name: 'Kopi',
       price: 15000,
+      costPrice: 9000,
       imagePath: 'kopi.jpg',
       stock: 10,
       categoryId: 'food',
@@ -17,6 +18,7 @@ void main() {
       expect(map['id'], 'p1');
       expect(map['name'], 'Kopi');
       expect(map['price'], 15000);
+      expect(map['cost_price'], 9000);
       expect(map['image_path'], 'kopi.jpg');
       expect(map['stock'], 10);
       expect(map['is_synced'], 0);
@@ -28,6 +30,7 @@ void main() {
         'id': 'p1',
         'name': 'Kopi',
         'price': 15000,
+        'cost_price': 9000,
         'image_path': 'kopi.jpg',
         'stock': 10,
         'description': '',
@@ -44,6 +47,7 @@ void main() {
         'price': 5000,
       });
       expect(restored.imagePath, '');
+      expect(restored.costPrice, 0);
       expect(restored.stock, 0);
       expect(restored.description, '');
       expect(restored.isSynced, 0);
@@ -51,8 +55,9 @@ void main() {
     });
 
     test('copyWith mengubah field tertentu', () {
-      final updated = product.copyWith(stock: 5, isSynced: 1);
+      final updated = product.copyWith(stock: 5, costPrice: 10000, isSynced: 1);
       expect(updated.stock, 5);
+      expect(updated.costPrice, 10000);
       expect(updated.isSynced, 1);
       expect(updated.id, product.id);
       expect(updated.name, product.name);
@@ -65,6 +70,7 @@ void main() {
           id: 'p1',
           name: 'Kopi',
           price: 15000,
+          costPrice: 9000,
           imagePath: 'kopi.jpg',
           stock: 10,
           categoryId: 'food',
@@ -73,12 +79,7 @@ void main() {
       expect(
         product,
         isNot(
-          const ProductModel(
-            id: 'p2',
-            name: 'Teh',
-            price: 5000,
-            imagePath: '',
-          ),
+          const ProductModel(id: 'p2', name: 'Teh', price: 5000, imagePath: ''),
         ),
       );
     });

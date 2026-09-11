@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -48,7 +47,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   ),
                   child: Column(
                     children: [
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20.h),
                       Container(
                         decoration: AppStyles.glassDecoration(
                           borderRadius: 32.r,
@@ -76,7 +75,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                       color: AppColors.primary,
                                     ),
                                   ),
-                                  const SizedBox(width: 16),
+                                  SizedBox(width: 16.w),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
@@ -98,7 +97,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 40),
+                              SizedBox(height: 40.h),
                               _buildPasswordField(
                                 controller: _oldPasswordController,
                                 hint: 'Password Lama',
@@ -110,8 +109,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                     ? 'Password lama harus diisi'
                                     : null,
                               ),
-                              const SizedBox(height: 16),
-                              const Divider(height: 32),
+                              SizedBox(height: 16.h),
+                              Divider(height: 32.h),
                               _buildPasswordField(
                                 controller: _newPasswordController,
                                 hint: 'Password Baru',
@@ -129,7 +128,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                   return null;
                                 },
                               ),
-                              const SizedBox(height: 16),
+                              SizedBox(height: 16.h),
                               TextFormField(
                                 controller: _confirmPasswordController,
                                 obscureText: true,
@@ -146,14 +145,14 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                   return null;
                                 },
                               ),
-                              const SizedBox(height: 48),
+                              SizedBox(height: 48.h),
                               SizedBox(
                                 height: ResponsiveLayout.adaptiveValue(
                                   context,
                                   portrait: 60,
                                   landscape: 52,
                                   tablet: 52,
-                                ),
+                                ).h,
                                 child: FilledButton(
                                   onPressed: () {
                                     if (_formKey.currentState!.validate()) {

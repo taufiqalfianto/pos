@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pos/core/util/app_style.dart';
@@ -14,7 +14,6 @@ import '../cubit/product_cubit.dart';
 
 import '../cubit/category_cubit.dart';
 import '../data/model/category_model.dart';
-import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -27,6 +26,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _priceController = TextEditingController();
+  final _costPriceController = TextEditingController();
   final _stockController = TextEditingController();
   final _descriptionController = TextEditingController();
   String _selectedCategoryId = 'general';
@@ -56,10 +56,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
         finalImagePath = await FileHelper.saveImagePermanently(_imagePath!);
       }
 
+      if (!mounted) return;
+
       final product = ProductModel(
         id: const Uuid().v4(),
         name: _nameController.text,
         price: double.parse(_priceController.text),
+        costPrice: double.parse(_costPriceController.text),
         imagePath: finalImagePath,
         stock: int.parse(_stockController.text),
         description: _descriptionController.text,
@@ -76,6 +79,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   void dispose() {
     _nameController.dispose();
     _priceController.dispose();
+    _costPriceController.dispose();
     _stockController.dispose();
     _descriptionController.dispose();
     super.dispose();
@@ -108,7 +112,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                               isLandscape: useLandscapeSizing,
                             ),
                           ),
-                          SizedBox(width: isTablet ? 24 : 32),
+                          SizedBox(width: isTablet ? 24.w : 32.w),
                           Expanded(flex: 2, child: _buildForm(context)),
                         ],
                       )
@@ -118,7 +122,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                             context,
                             isLandscape: useLandscapeSizing,
                           ),
-                          SizedBox(height: isTablet ? 24 : 32),
+                          SizedBox(height: isTablet ? 24.h : 32.h),
                           _buildForm(context),
                         ],
                       ),
@@ -138,7 +142,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           context: context,
           backgroundColor: Colors.transparent,
           builder: (_) => Container(
-            padding: EdgeInsets.all(isTablet ? 20 : 24),
+            padding: EdgeInsets.all(isTablet ? 20.w : 24.w),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.vertical(top: Radius.circular(32.r)),
@@ -154,7 +158,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: isTablet ? 16 : 20),
+                  SizedBox(height: isTablet ? 16.h : 20.h),
                   ListTile(
                     leading: Container(
                       padding: EdgeInsets.all(8.w),
@@ -179,7 +183,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       borderRadius: BorderRadius.circular(16.r),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8.h),
                   ListTile(
                     leading: Container(
                       padding: EdgeInsets.all(8.w),
@@ -215,7 +219,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         height: isLandscape
             ? (isTablet ? 200.h : 220.h)
             : (isTablet ? 260.h : 300.h),
-        decoration: AppStyles.glassDecoration(borderRadius: 32.r),
+        decoration: AppStyles.glassDecoration(borderRadius: 32),
         clipBehavior: Clip.antiAlias,
         child: _imagePath != null
             ? Image.file(
@@ -227,7 +231,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 children: [
                   Container(
                     padding: EdgeInsets.all(
-                      isLandscape || isTablet ? 14 : 20.w,
+                      isLandscape || isTablet ? 14.w : 20.w,
                     ),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.05),
@@ -235,11 +239,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     ),
                     child: Icon(
                       Icons.add_a_photo_rounded,
-                      size: isLandscape || isTablet ? 40 : 48,
+                      size: isLandscape || isTablet ? 40.r : 48.r,
                       color: AppColors.primary,
                     ),
                   ),
-                  SizedBox(height: isLandscape || isTablet ? 10 : 16),
+                  SizedBox(height: isLandscape || isTablet ? 10.h : 16.h),
                   const Text(
                     "Unggah Foto Produk",
                     style: TextStyle(
@@ -266,7 +270,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildFieldHeader('Detail Produk'),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           TextFormField(
             controller: _nameController,
             decoration: const InputDecoration(
@@ -275,21 +279,21 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
             validator: (val) => val!.isEmpty ? 'Nama tidak boleh kosong' : null,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           Row(
             children: [
               Expanded(
-                flex: 2,
                 child: TextFormField(
                   controller: _priceController,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
-                    hintText: 'Harga',
+                    hintText: 'Harga Jual',
                     prefixIcon: Icon(Icons.payments_rounded),
                   ),
                   validator: (val) {
-                    if (val == null || val.isEmpty)
+                    if (val == null || val.isEmpty) {
                       return 'Harga tidak boleh kosong';
+                    }
                     if (double.tryParse(val) == null || double.parse(val) < 0) {
                       return 'Harga tidak valid';
                     }
@@ -297,20 +301,21 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   },
                 ),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: 8.w),
               Expanded(
                 child: TextFormField(
-                  controller: _stockController,
+                  controller: _costPriceController,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
-                    hintText: 'Stok',
-                    prefixIcon: Icon(Icons.inventory_rounded),
+                    hintText: 'Modal Produk',
+                    prefixIcon: Icon(Icons.savings_rounded),
                   ),
                   validator: (val) {
-                    if (val == null || val.isEmpty)
-                      return 'Stok tidak boleh kosong';
-                    if (int.tryParse(val) == null || int.parse(val) < 0) {
-                      return 'Stok tidak valid';
+                    if (val == null || val.isEmpty) {
+                      return 'Modal tidak boleh kosong';
+                    }
+                    if (double.tryParse(val) == null || double.parse(val) < 0) {
+                      return 'Modal tidak valid';
                     }
                     return null;
                   },
@@ -318,9 +323,27 @@ class _AddProductScreenState extends State<AddProductScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
+          TextFormField(
+            controller: _stockController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              hintText: 'Stok',
+              prefixIcon: Icon(Icons.inventory_rounded),
+            ),
+            validator: (val) {
+              if (val == null || val.isEmpty) {
+                return 'Stok tidak boleh kosong';
+              }
+              if (int.tryParse(val) == null || int.parse(val) < 0) {
+                return 'Stok tidak valid';
+              }
+              return null;
+            },
+          ),
+          SizedBox(height: 16.h),
           _buildFieldHeader('Kategori'),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           BlocBuilder<CategoryCubit, CategoryState>(
             builder: (context, state) {
               List<CategoryModel> categories = [];
@@ -342,29 +365,29 @@ class _AddProductScreenState extends State<AddProductScreen> {
               );
             },
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           _buildFieldHeader('Deskripsi (Opsional)'),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           TextFormField(
             controller: _descriptionController,
             maxLines: 4,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText:
                   'Deskripsi Produk (cth: Kopi susu khas dengan gula aren asli)',
               prefixIcon: Padding(
-                padding: EdgeInsets.only(bottom: 60),
-                child: Icon(Icons.notes_rounded),
+                padding: EdgeInsets.only(bottom: 60.h),
+                child: const Icon(Icons.notes_rounded),
               ),
             ),
           ),
-          const SizedBox(height: 40),
+          SizedBox(height: 40.h),
           SizedBox(
             height: ResponsiveLayout.adaptiveValue(
               context,
               portrait: 60,
               landscape: 52,
               tablet: 52,
-            ),
+            ).h,
             child: FilledButton(
               onPressed: () => _saveProduct(),
               style: FilledButton.styleFrom(
@@ -387,14 +410,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
     return Row(
       children: [
         Container(
-          width: 4,
-          height: 24,
+          width: 4.w,
+          height: 24.h,
           decoration: BoxDecoration(
             color: AppColors.primary,
             borderRadius: BorderRadius.circular(2.r),
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: 12.w),
         Text(
           title,
           style: TextStyle(
