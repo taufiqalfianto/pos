@@ -10,6 +10,7 @@ import 'package:pos/features/product/data/model/product_model.dart';
 import 'package:pos/features/product/data/model/category_model.dart';
 import 'package:pos/core/helper/file_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
+import 'package:pos/core/widgets/loading_button_child.dart';
 import '../cubit/product_cubit.dart';
 import '../cubit/category_cubit.dart';
 
@@ -30,6 +31,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   late final TextEditingController _descriptionController;
   late String _selectedCategoryId;
   String? _imagePath;
+  bool _isSaving = false;
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -75,31 +77,38 @@ class _EditProductScreenState extends State<EditProductScreen> {
   }
 
   Future<void> _saveProduct() async {
+    if (_isSaving) return;
     if (_formKey.currentState!.validate()) {
+      setState(() => _isSaving = true);
       String finalImagePath = _imagePath ?? '';
 
-      // If imagePath has changed and is not empty, save it permanently
-      if (_imagePath != null &&
-          _imagePath != widget.product.imagePath &&
-          _imagePath!.isNotEmpty) {
-        finalImagePath = await FileHelper.saveImagePermanently(_imagePath!);
+      try {
+        // If imagePath has changed and is not empty, save it permanently
+        if (_imagePath != null &&
+            _imagePath != widget.product.imagePath &&
+            _imagePath!.isNotEmpty) {
+          finalImagePath = await FileHelper.saveImagePermanently(_imagePath!);
+        }
+
+        if (!mounted) return;
+
+        final updatedProduct = widget.product.copyWith(
+          name: _nameController.text,
+          price: double.tryParse(_priceController.text) ?? 0,
+          costPrice: double.tryParse(_costPriceController.text) ?? 0,
+          imagePath: finalImagePath,
+          stock: int.tryParse(_stockController.text) ?? 0,
+          description: _descriptionController.text,
+          categoryId: _selectedCategoryId,
+        );
+
+        await context.read<ProductCubit>().updateProduct(updatedProduct);
+        if (!mounted) return;
+        ToastHelper.showSuccess(context, 'Produk berhasil diperbarui');
+        context.pop();
+      } finally {
+        if (mounted) setState(() => _isSaving = false);
       }
-
-      if (!mounted) return;
-
-      final updatedProduct = widget.product.copyWith(
-        name: _nameController.text,
-        price: double.tryParse(_priceController.text) ?? 0,
-        costPrice: double.tryParse(_costPriceController.text) ?? 0,
-        imagePath: finalImagePath,
-        stock: int.tryParse(_stockController.text) ?? 0,
-        description: _descriptionController.text,
-        categoryId: _selectedCategoryId,
-      );
-
-      context.read<ProductCubit>().updateProduct(updatedProduct);
-      ToastHelper.showSuccess(context, 'Produk berhasil diperbarui');
-      context.pop();
     }
   }
 
@@ -408,15 +417,19 @@ class _EditProductScreenState extends State<EditProductScreen> {
               tablet: 52,
             ).h,
             child: FilledButton(
-              onPressed: () => _saveProduct(),
+              onPressed: _isSaving ? null : () => _saveProduct(),
               style: FilledButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20.r),
                 ),
               ),
-              child: const Text(
-                'SIMPAN PERUBAHAN',
-                style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1),
+              child: LoadingButtonChild(
+                isLoading: _isSaving,
+                label: 'SIMPAN PERUBAHAN',
+                textStyle: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
+                ),
               ),
             ),
           ),

@@ -129,12 +129,25 @@ class OrderRepository {
       GROUP BY c.id
     ''', whereArgs);
 
+    final paymentSalesResult = await db.rawQuery('''
+      SELECT
+        o.payment_method as payment_method,
+        COUNT(DISTINCT o.id) as count,
+        COALESCE(SUM(oi.price * oi.quantity), 0) as revenue
+      FROM orders o
+      LEFT JOIN order_items oi ON oi.order_id = o.id
+      $whereClause
+      GROUP BY o.payment_method
+      ORDER BY revenue DESC
+    ''', whereArgs);
+
     return {
       'total_orders': totalSalesCount,
       'total_revenue': totalRevenue,
       'total_cost': totalCost,
       'total_profit': totalProfit,
       'category_sales': categorySalesResult,
+      'payment_sales': paymentSalesResult,
     };
   }
 }

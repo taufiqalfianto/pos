@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
+import 'package:pos/core/widgets/loading_button_child.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 
@@ -22,6 +23,27 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _confirmPasswordController = TextEditingController();
   bool _isOldObscure = true;
   bool _isNewObscure = true;
+  bool _isSaving = false;
+
+  Future<void> _savePassword() async {
+    if (_isSaving) return;
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isSaving = true);
+    await context.read<AuthCubit>().changePassword(
+      _oldPasswordController.text,
+      _newPasswordController.text,
+    );
+
+    if (!mounted) return;
+    setState(() => _isSaving = false);
+
+    final state = context.read<AuthCubit>().state;
+    if (state is Authenticated) {
+      ToastHelper.showSuccess(context, 'Password berhasil diubah');
+      context.pop();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -154,27 +176,16 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                   tablet: 52,
                                 ).h,
                                 child: FilledButton(
-                                  onPressed: () {
-                                    if (_formKey.currentState!.validate()) {
-                                      context.read<AuthCubit>().changePassword(
-                                        _oldPasswordController.text,
-                                        _newPasswordController.text,
-                                      );
-                                      ToastHelper.showSuccess(
-                                        context,
-                                        'Password berhasil diubah',
-                                      );
-                                      context.pop();
-                                    }
-                                  },
+                                  onPressed: _isSaving ? null : _savePassword,
                                   style: FilledButton.styleFrom(
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(20.r),
                                     ),
                                   ),
-                                  child: const Text(
-                                    'UPDATE PASSWORD',
-                                    style: TextStyle(
+                                  child: LoadingButtonChild(
+                                    isLoading: _isSaving,
+                                    label: 'UPDATE PASSWORD',
+                                    textStyle: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       letterSpacing: 1,
                                     ),

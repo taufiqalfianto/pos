@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
+import 'package:pos/core/widgets/loading_button_child.dart';
 import 'package:uuid/uuid.dart';
 import '../cubit/auth_cubit.dart';
 import '../data/model/user_model.dart';
@@ -218,43 +219,58 @@ class _RegisterScreenState extends State<RegisterScreen> {
             SizedBox(
               width: double.infinity,
               height: isTablet ? 52.h : 60.h,
-              child: FilledButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    final user = UserModel(
-                      id: const Uuid().v4(),
-                      name: _nameController.text,
-                      username: _usernameController.text,
-                      password: _passwordController.text,
-                    );
-                    context.read<AuthCubit>().register(user);
-                  }
+              child: BlocBuilder<AuthCubit, AuthState>(
+                builder: (context, state) {
+                  final isLoading = state is AuthLoading;
+                  return FilledButton(
+                    onPressed: isLoading
+                        ? null
+                        : () {
+                            if (_formKey.currentState!.validate()) {
+                              final user = UserModel(
+                                id: const Uuid().v4(),
+                                name: _nameController.text,
+                                username: _usernameController.text,
+                                password: _passwordController.text,
+                              );
+                              context.read<AuthCubit>().register(user);
+                            }
+                          },
+                    style: FilledButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          isTablet ? 16.r : 20.r,
+                        ),
+                      ),
+                    ),
+                    child: LoadingButtonChild(
+                      isLoading: isLoading,
+                      label: 'DAFTAR',
+                      textStyle: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  );
                 },
-                style: FilledButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(isTablet ? 16.r : 20.r),
-                  ),
-                ),
-                child: Text(
-                  'DAFTAR',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1,
-                  ),
-                ),
               ),
             ),
             SizedBox(height: isTablet ? 16.h : 24.h),
-            TextButton(
-              onPressed: () => context.go('/login'),
-              child: const Text(
-                'Sudah punya akun? Login di sini',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+            BlocBuilder<AuthCubit, AuthState>(
+              builder: (context, state) {
+                final isLoading = state is AuthLoading;
+                return TextButton(
+                  onPressed: isLoading ? null : () => context.go('/login'),
+                  child: const Text(
+                    'Sudah punya akun? Login di sini',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),

@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
+import 'package:pos/core/widgets/loading_button_child.dart';
 import '../cubit/stock_report_cubit.dart';
 import '../data/model/product_model.dart';
 import '../data/model/stock_report_model.dart';
@@ -129,21 +130,30 @@ class _AddStockReportScreenState extends State<AddStockReportScreen> {
                             landscape: 52,
                             tablet: 52,
                           ).h,
-                          child: FilledButton(
-                            onPressed: _submit,
-                            style: FilledButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20.r),
+                          child:
+                              BlocBuilder<StockReportCubit, StockReportState>(
+                                builder: (context, state) {
+                                  final isLoading = state is StockReportLoading;
+                                  return FilledButton(
+                                    onPressed: isLoading ? null : _submit,
+                                    style: FilledButton.styleFrom(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          20.r,
+                                        ),
+                                      ),
+                                    ),
+                                    child: LoadingButtonChild(
+                                      isLoading: isLoading,
+                                      label: 'SIMPAN PENYESUAIAN',
+                                      textStyle: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
-                            ),
-                            child: const Text(
-                              'SIMPAN PENYESUAIAN',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
-                              ),
-                            ),
-                          ),
                         ),
                       ],
                     ),

@@ -8,6 +8,7 @@ import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/helper/file_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
+import 'package:pos/core/widgets/loading_button_child.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -24,6 +25,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _usernameController;
   String? _pickedImagePath;
+  bool _isSaving = false;
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -59,29 +61,37 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _saveProfile() async {
+    if (_isSaving) return;
     if (_formKey.currentState!.validate()) {
       final authState = context.read<AuthCubit>().state;
       if (authState is Authenticated) {
+        setState(() => _isSaving = true);
         String finalImagePath = _pickedImagePath ?? '';
 
-        // Save image permanently if it's a new temporary file
-        if (finalImagePath.isNotEmpty &&
-            finalImagePath != authState.user.imagePath) {
-          finalImagePath = await FileHelper.saveImagePermanently(
-            finalImagePath,
+        try {
+          // Save image permanently if it's a new temporary file
+          if (finalImagePath.isNotEmpty &&
+              finalImagePath != authState.user.imagePath) {
+            finalImagePath = await FileHelper.saveImagePermanently(
+              finalImagePath,
+            );
+          }
+
+          if (!mounted) return;
+
+          final updatedUser = authState.user.copyWith(
+            name: _nameController.text,
+            username: _usernameController.text,
+            imagePath: finalImagePath,
           );
+
+          await context.read<AuthCubit>().updateProfile(updatedUser);
+          if (!mounted) return;
+          ToastHelper.showSuccess(context, 'Profil berhasil diperbarui');
+          context.pop();
+        } finally {
+          if (mounted) setState(() => _isSaving = false);
         }
-
-        if (!mounted) return;
-
-        final updatedUser = authState.user.copyWith(
-          name: _nameController.text,
-          username: _usernameController.text,
-          imagePath: finalImagePath,
-        );
-        context.read<AuthCubit>().updateProfile(updatedUser);
-        ToastHelper.showSuccess(context, 'Profil berhasil diperbarui');
-        context.pop();
       }
     }
   }
@@ -223,7 +233,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               SizedBox(
                                 height: isTablet ? 52.h : 60.h,
                                 child: FilledButton(
-                                  onPressed: _saveProfile,
+                                  onPressed: _isSaving ? null : _saveProfile,
                                   style: FilledButton.styleFrom(
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(
@@ -231,9 +241,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       ),
                                     ),
                                   ),
-                                  child: const Text(
-                                    'SIMPAN PERUBAHAN',
-                                    style: TextStyle(
+                                  child: LoadingButtonChild(
+                                    isLoading: _isSaving,
+                                    label: 'SIMPAN PERUBAHAN',
+                                    textStyle: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       letterSpacing: 1,
                                     ),

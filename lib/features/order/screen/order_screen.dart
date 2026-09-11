@@ -3,10 +3,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/currency_helper.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/helper/file_helper.dart';
+import 'package:pos/core/helper/payment_method_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
 import 'package:pos/core/widgets/loading_button_child.dart';
 import 'package:pos/core/widgets/shimmer_loading.dart';
@@ -406,7 +408,7 @@ class _OrderScreenState extends State<OrderScreen> {
                         : (isLandscape || isTablet ? 45.h : 40.h),
                     child: FilledButton(
                       onPressed: hasItems && !isCheckingOut
-                          ? () => context.read<OrderCubit>().checkout()
+                          ? () => _showPaymentPreviewDialog(context)
                           : null,
                       style: FilledButton.styleFrom(
                         shape: RoundedRectangleBorder(
@@ -504,6 +506,212 @@ class _OrderScreenState extends State<OrderScreen> {
           ],
         );
       },
+    );
+  }
+
+  Future<void> _showPaymentPreviewDialog(BuildContext context) async {
+    final orderCubit = context.read<OrderCubit>();
+    final items = orderCubit.cartItems;
+    if (items.isEmpty) return;
+
+    final now = DateTime.now();
+    final total = orderCubit.cartTotal;
+    final totalQuantity = items.fold<int>(
+      0,
+      (sum, item) => sum + item.quantity,
+    );
+    var selectedPaymentMethod = PaymentMethodHelper.cash;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24.r),
+              ),
+              title: Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(10.w),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(14.r),
+                    ),
+                    child: Icon(
+                      Icons.receipt_long_rounded,
+                      color: AppColors.primary,
+                      size: 24.r,
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Text(
+                      'Preview Pembayaran',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18.sp,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _PaymentPreviewRow(
+                      label: 'Tanggal',
+                      value: DateFormat('dd MMMM yyyy', 'id').format(now),
+                    ),
+                    SizedBox(height: 10.h),
+                    _PaymentPreviewRow(
+                      label: 'Waktu',
+                      value: DateFormat('HH:mm:ss').format(now),
+                    ),
+                    SizedBox(height: 10.h),
+                    _PaymentPreviewRow(
+                      label: 'Jenis produk',
+                      value: '${items.length} item',
+                    ),
+                    SizedBox(height: 10.h),
+                    _PaymentPreviewRow(
+                      label: 'Jumlah barang',
+                      value: '$totalQuantity pcs',
+                    ),
+                    Divider(height: 28.h),
+                    ...items.map(
+                      (item) => Padding(
+                        padding: EdgeInsets.only(bottom: 10.h),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${item.productName} x${item.quantity}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13.sp,
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 12.w),
+                            Text(
+                              CurrencyHelper.formatIdr(item.subtotal),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Divider(height: 28.h),
+                    _PaymentPreviewRow(
+                      label: 'Total bayar',
+                      value: CurrencyHelper.formatIdr(total),
+                      valueColor: AppColors.primary,
+                      isEmphasis: true,
+                    ),
+                    SizedBox(height: 20.h),
+                    Text(
+                      'Metode Pembayaran',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14.sp,
+                      ),
+                    ),
+                    SizedBox(height: 10.h),
+                    SegmentedButton<String>(
+                      segments: const [
+                        ButtonSegment(
+                          value: PaymentMethodHelper.cash,
+                          label: Text('Cash'),
+                          icon: Icon(Icons.payments_rounded),
+                        ),
+                        ButtonSegment(
+                          value: PaymentMethodHelper.qris,
+                          label: Text('QRIS'),
+                          icon: Icon(Icons.qr_code_2_rounded),
+                        ),
+                      ],
+                      selected: {selectedPaymentMethod},
+                      onSelectionChanged: (selection) {
+                        setDialogState(
+                          () => selectedPaymentMethod = selection.first,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actionsPadding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 20.h),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('BATAL'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                    orderCubit.checkout(paymentMethod: selectedPaymentMethod);
+                  },
+                  child: const Text(
+                    'KONFIRMASI',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _PaymentPreviewRow extends StatelessWidget {
+  const _PaymentPreviewRow({
+    required this.label,
+    required this.value,
+    this.valueColor,
+    this.isEmphasis = false,
+  });
+
+  final String label;
+  final String value;
+  final Color? valueColor;
+  final bool isEmphasis;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: isEmphasis ? 14.sp : 13.sp,
+          ),
+        ),
+        SizedBox(width: 16.w),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              color: valueColor ?? AppColors.textPrimary,
+              fontWeight: isEmphasis ? FontWeight.bold : FontWeight.w700,
+              fontSize: isEmphasis ? 18.sp : 13.sp,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

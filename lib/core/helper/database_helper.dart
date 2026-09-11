@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:pos/core/helper/app_logger.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -16,10 +19,11 @@ class DatabaseHelper {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
+    await _backupDatabaseBeforeOpen(path);
 
     return await openDatabase(
       path,
-      version: 11,
+      version: 12,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -30,7 +34,6 @@ class DatabaseHelper {
       await _createUsersTable(db);
     }
     if (oldVersion < 3) {
-      await db.execute('DROP TABLE IF EXISTS users');
       await _createUsersTable(db);
     }
     if (oldVersion < 4) {
@@ -131,6 +134,109 @@ class DatabaseHelper {
     if (oldVersion < 11) {
       await _createIndexes(db);
     }
+    if (oldVersion < 12) {
+      await _addColumnIfMissing(
+        db,
+        tableName: 'orders',
+        columnName: 'payment_method',
+        definition: 'TEXT NOT NULL DEFAULT "cash"',
+      );
+    }
+    await _ensureCurrentSchema(db);
+  }
+
+  Future<void> _backupDatabaseBeforeOpen(String path) async {
+    try {
+      await _copyIfExists(path, '$path.backup');
+      await _copyIfExists('$path-wal', '$path-wal.backup');
+      await _copyIfExists('$path-shm', '$path-shm.backup');
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Backup database lokal sebelum open gagal',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  Future<void> _copyIfExists(String sourcePath, String targetPath) async {
+    final source = File(sourcePath);
+    if (await source.exists()) {
+      await source.copy(targetPath);
+    }
+  }
+
+  Future<void> _ensureCurrentSchema(Database db) async {
+    await _createCategoriesTable(db);
+    await _createProductsTable(db);
+    await _createUsersTable(db);
+    await _createOrderTables(db);
+    await _createStockReportsTable(db);
+    await _addColumnIfMissing(
+      db,
+      tableName: 'products',
+      columnName: 'stock',
+      definition: 'INTEGER NOT NULL DEFAULT 0',
+    );
+    await _addColumnIfMissing(
+      db,
+      tableName: 'products',
+      columnName: 'description',
+      definition: 'TEXT NOT NULL DEFAULT ""',
+    );
+    await _addColumnIfMissing(
+      db,
+      tableName: 'products',
+      columnName: 'category_id',
+      definition: 'TEXT',
+    );
+    await _addColumnIfMissing(
+      db,
+      tableName: 'products',
+      columnName: 'cost_price',
+      definition: 'REAL NOT NULL DEFAULT 0',
+    );
+    await _addColumnIfMissing(
+      db,
+      tableName: 'users',
+      columnName: 'image_path',
+      definition: 'TEXT',
+    );
+    await _addColumnIfMissing(
+      db,
+      tableName: 'orders',
+      columnName: 'day',
+      definition: 'INTEGER NOT NULL DEFAULT 1',
+    );
+    await _addColumnIfMissing(
+      db,
+      tableName: 'orders',
+      columnName: 'month',
+      definition: 'INTEGER NOT NULL DEFAULT 1',
+    );
+    await _addColumnIfMissing(
+      db,
+      tableName: 'orders',
+      columnName: 'year',
+      definition: 'INTEGER NOT NULL DEFAULT 1970',
+    );
+    await _addColumnIfMissing(
+      db,
+      tableName: 'orders',
+      columnName: 'payment_method',
+      definition: 'TEXT NOT NULL DEFAULT "cash"',
+    );
+    await _addColumnIfMissing(
+      db,
+      tableName: 'order_items',
+      columnName: 'cost_price',
+      definition: 'REAL NOT NULL DEFAULT 0',
+    );
+    await db.insert('categories', {
+      'id': 'general',
+      'name': 'Umum',
+    }, conflictAlgorithm: ConflictAlgorithm.ignore);
+    await _createIndexes(db);
   }
 
   Future<void> _addColumnIfMissing(
@@ -150,28 +256,11 @@ class DatabaseHelper {
   }
 
   Future _createDB(Database db, int version) async {
-    const idType = 'TEXT PRIMARY KEY';
-    const textType = 'TEXT NOT NULL';
-    const intType = 'INTEGER NOT NULL';
-    const doubleType = 'REAL NOT NULL';
-
     // Table: Categories
     await _createCategoriesTable(db);
 
     // Table: Products
-    await db.execute('''
-CREATE TABLE products ( 
-  id $idType, 
-  name $textType,
-  price $doubleType,
-  cost_price $doubleType,
-  image_path $textType,
-  stock $intType,
-  description $textType,
-  is_synced $intType,
-  category_id TEXT
-  )
-''');
+    await _createProductsTable(db);
 
     // Table: Users
     await _createUsersTable(db);
@@ -213,12 +302,33 @@ CREATE TABLE products (
     );
   }
 
+  Future _createProductsTable(Database db) async {
+    const idType = 'TEXT PRIMARY KEY';
+    const textType = 'TEXT NOT NULL';
+    const intType = 'INTEGER NOT NULL';
+    const doubleType = 'REAL NOT NULL';
+
+    await db.execute('''
+CREATE TABLE IF NOT EXISTS products (
+  id $idType,
+  name $textType,
+  price $doubleType,
+  cost_price $doubleType,
+  image_path $textType,
+  stock $intType,
+  description $textType,
+  is_synced $intType,
+  category_id TEXT
+  )
+''');
+  }
+
   Future _createUsersTable(Database db) async {
     const idType = 'TEXT PRIMARY KEY';
     const textType = 'TEXT NOT NULL';
 
     await db.execute('''
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id $idType,
   name $textType,
   username $textType UNIQUE,
@@ -235,9 +345,10 @@ CREATE TABLE users (
     const doubleType = 'REAL NOT NULL';
 
     await db.execute('''
-CREATE TABLE orders (
+CREATE TABLE IF NOT EXISTS orders (
   id $idType,
   total_price $doubleType,
+  payment_method $textType,
   created_at $textType,
   day $intType,
   month $intType,
@@ -246,7 +357,7 @@ CREATE TABLE orders (
 ''');
 
     await db.execute('''
-CREATE TABLE order_items (
+CREATE TABLE IF NOT EXISTS order_items (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   order_id $textType,
   product_id $textType,
@@ -265,7 +376,7 @@ CREATE TABLE order_items (
     const intType = 'INTEGER NOT NULL';
 
     await db.execute('''
-CREATE TABLE stock_reports (
+CREATE TABLE IF NOT EXISTS stock_reports (
   id $idType,
   product_id $textType,
   product_name $textType,
@@ -283,7 +394,7 @@ CREATE TABLE stock_reports (
     const textType = 'TEXT NOT NULL';
 
     await db.execute('''
-CREATE TABLE categories (
+CREATE TABLE IF NOT EXISTS categories (
   id $idType,
   name $textType
 )

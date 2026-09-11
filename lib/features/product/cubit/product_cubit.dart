@@ -61,9 +61,13 @@ class ProductCubit extends Cubit<ProductState> {
   Future<void> addProduct(ProductModel product) async {
     try {
       await _repository.addProduct(product);
-      loadProducts(); // Reload list after add
+      await loadProducts(); // Reload list after add
     } catch (e, stackTrace) {
-      AppLogger.error('Gagal menambah produk', error: e, stackTrace: stackTrace);
+      AppLogger.error(
+        'Gagal menambah produk',
+        error: e,
+        stackTrace: stackTrace,
+      );
       emit(ProductError("Gagal menambah produk: $e"));
     }
   }
@@ -71,9 +75,13 @@ class ProductCubit extends Cubit<ProductState> {
   Future<void> updateProduct(ProductModel product) async {
     try {
       await _repository.updateProduct(product);
-      loadProducts(); // Reload list after update
+      await loadProducts(); // Reload list after update
     } catch (e, stackTrace) {
-      AppLogger.error('Gagal memperbarui produk', error: e, stackTrace: stackTrace);
+      AppLogger.error(
+        'Gagal memperbarui produk',
+        error: e,
+        stackTrace: stackTrace,
+      );
       emit(ProductError("Gagal memperbarui produk: $e"));
     }
   }
@@ -81,9 +89,13 @@ class ProductCubit extends Cubit<ProductState> {
   Future<void> deleteProduct(String id) async {
     try {
       await _repository.deleteProduct(id);
-      loadProducts(); // Reload list after delete
+      await loadProducts(); // Reload list after delete
     } catch (e, stackTrace) {
-      AppLogger.error('Gagal menghapus produk', error: e, stackTrace: stackTrace);
+      AppLogger.error(
+        'Gagal menghapus produk',
+        error: e,
+        stackTrace: stackTrace,
+      );
       emit(ProductError("Gagal menghapus produk: $e"));
     }
   }

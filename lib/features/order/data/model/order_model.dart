@@ -69,6 +69,7 @@ class OrderModel extends Equatable {
   final String id;
   final List<OrderItemModel> items;
   final double totalPrice;
+  final String paymentMethod;
   final DateTime createdAt;
   final int day;
   final int month;
@@ -78,6 +79,7 @@ class OrderModel extends Equatable {
     required this.id,
     required this.items,
     required this.totalPrice,
+    this.paymentMethod = 'cash',
     required this.createdAt,
     required this.day,
     required this.month,
@@ -88,6 +90,7 @@ class OrderModel extends Equatable {
     return {
       'id': id,
       'total_price': totalPrice,
+      'payment_method': paymentMethod,
       'created_at': createdAt.toIso8601String(),
       'day': day,
       'month': month,
@@ -101,7 +104,8 @@ class OrderModel extends Equatable {
   ) {
     return OrderModel(
       id: map['id'],
-      totalPrice: map['total_price'],
+      totalPrice: (map['total_price'] as num).toDouble(),
+      paymentMethod: map['payment_method'] as String? ?? 'cash',
       createdAt: DateTime.parse(map['created_at']),
       day: map['day'] ?? DateTime.parse(map['created_at']).day,
       month: map['month'] ?? DateTime.parse(map['created_at']).month,
@@ -115,6 +119,7 @@ class OrderModel extends Equatable {
     id,
     items,
     totalPrice,
+    paymentMethod,
     createdAt,
     day,
     month,

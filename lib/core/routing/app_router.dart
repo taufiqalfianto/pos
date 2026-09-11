@@ -7,6 +7,7 @@ import 'package:pos/features/auth/screen/login_screen.dart';
 import 'package:pos/features/auth/screen/register_screen.dart';
 import 'package:pos/features/auth/screen/change_password_screen.dart';
 import 'package:pos/features/auth/screen/edit_profile_screen.dart';
+import 'package:pos/features/auth/screen/local_data_warning_screen.dart';
 import 'package:pos/features/auth/screen/splash_screen.dart';
 import 'package:pos/core/widgets/main_shell.dart';
 import 'package:pos/features/product/data/model/product_model.dart';
@@ -30,10 +31,15 @@ class AppRouter {
         final authState = authCubit.state;
         final bool isPublicRoute =
             state.matchedLocation == '/splash' ||
+            state.matchedLocation == '/local-data-warning' ||
             state.matchedLocation == '/login' ||
             state.matchedLocation == '/register';
 
         if (authState is AuthLoading || authState is AuthInitial) {
+          return null;
+        }
+
+        if (state.matchedLocation == '/local-data-warning') {
           return null;
         }
 
@@ -51,6 +57,10 @@ class AppRouter {
         GoRoute(
           path: '/splash',
           builder: (context, state) => const SplashScreen(),
+        ),
+        GoRoute(
+          path: '/local-data-warning',
+          builder: (context, state) => const LocalDataWarningScreen(),
         ),
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) =>

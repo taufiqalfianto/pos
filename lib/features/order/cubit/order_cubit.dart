@@ -123,7 +123,7 @@ class OrderCubit extends Cubit<OrderState> {
     return _cartItems.fold(0, (sum, item) => sum + item.subtotal);
   }
 
-  Future<void> checkout() async {
+  Future<void> checkout({required String paymentMethod}) async {
     if (_cartItems.isEmpty) return;
 
     try {
@@ -134,6 +134,7 @@ class OrderCubit extends Cubit<OrderState> {
         id: const Uuid().v4(),
         items: List.from(_cartItems),
         totalPrice: _calculateTotal(),
+        paymentMethod: paymentMethod,
         createdAt: now,
         day: now.day,
         month: now.month,

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/util/responsive_layout.dart';
+import 'package:pos/core/widgets/shimmer_loading.dart';
 import '../cubit/stock_report_cubit.dart';
 import '../data/model/product_model.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -137,7 +138,22 @@ class _StockReportScreenState extends State<StockReportScreen> {
     return BlocBuilder<StockReportCubit, StockReportState>(
       builder: (context, state) {
         if (state is StockReportLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: ResponsiveLayout.contentMaxWidth(
+                  context,
+                  maxWidth: 760,
+                ),
+              ),
+              child: ListShimmer(
+                itemCount: 5,
+                itemHeight: 108,
+                padding: ResponsiveLayout.pagePadding(context),
+                withAvatar: false,
+              ),
+            ),
+          );
         } else if (state is StockHistoryLoaded) {
           if (state.reports.isEmpty) {
             return Center(

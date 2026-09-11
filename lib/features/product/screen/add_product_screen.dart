@@ -10,6 +10,7 @@ import 'package:pos/features/product/data/model/product_model.dart';
 import 'package:uuid/uuid.dart';
 import 'package:pos/core/helper/file_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
+import 'package:pos/core/widgets/loading_button_child.dart';
 import '../cubit/product_cubit.dart';
 
 import '../cubit/category_cubit.dart';
@@ -31,6 +32,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _descriptionController = TextEditingController();
   String _selectedCategoryId = 'general';
   String? _imagePath;
+  bool _isSaving = false;
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -49,29 +51,36 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   Future<void> _saveProduct() async {
+    if (_isSaving) return;
     if (_formKey.currentState!.validate()) {
+      setState(() => _isSaving = true);
       String finalImagePath = _imagePath ?? '';
 
-      if (_imagePath != null && _imagePath!.isNotEmpty) {
-        finalImagePath = await FileHelper.saveImagePermanently(_imagePath!);
+      try {
+        if (_imagePath != null && _imagePath!.isNotEmpty) {
+          finalImagePath = await FileHelper.saveImagePermanently(_imagePath!);
+        }
+
+        if (!mounted) return;
+
+        final product = ProductModel(
+          id: const Uuid().v4(),
+          name: _nameController.text,
+          price: double.parse(_priceController.text),
+          costPrice: double.parse(_costPriceController.text),
+          imagePath: finalImagePath,
+          stock: int.parse(_stockController.text),
+          description: _descriptionController.text,
+          categoryId: _selectedCategoryId,
+        );
+
+        await context.read<ProductCubit>().addProduct(product);
+        if (!mounted) return;
+        ToastHelper.showSuccess(context, 'Produk berhasil disimpan');
+        context.pop();
+      } finally {
+        if (mounted) setState(() => _isSaving = false);
       }
-
-      if (!mounted) return;
-
-      final product = ProductModel(
-        id: const Uuid().v4(),
-        name: _nameController.text,
-        price: double.parse(_priceController.text),
-        costPrice: double.parse(_costPriceController.text),
-        imagePath: finalImagePath,
-        stock: int.parse(_stockController.text),
-        description: _descriptionController.text,
-        categoryId: _selectedCategoryId,
-      );
-
-      context.read<ProductCubit>().addProduct(product);
-      ToastHelper.showSuccess(context, 'Produk berhasil disimpan');
-      context.pop();
     }
   }
 
@@ -389,15 +398,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
               tablet: 52,
             ).h,
             child: FilledButton(
-              onPressed: () => _saveProduct(),
+              onPressed: _isSaving ? null : () => _saveProduct(),
               style: FilledButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20.r),
                 ),
               ),
-              child: const Text(
-                'SIMPAN PRODUK',
-                style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1),
+              child: LoadingButtonChild(
+                isLoading: _isSaving,
+                label: 'SIMPAN PRODUK',
+                textStyle: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
+                ),
               ),
             ),
           ),

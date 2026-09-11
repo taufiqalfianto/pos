@@ -21,6 +21,7 @@ class SalesReportLoaded extends SalesReportState {
   final double totalCost;
   final double totalProfit;
   final List<Map<String, dynamic>> categorySales;
+  final List<Map<String, dynamic>> paymentSales;
   final SalesReportPeriod period;
   final DateTime selectedDate;
 
@@ -30,6 +31,7 @@ class SalesReportLoaded extends SalesReportState {
     required this.totalCost,
     required this.totalProfit,
     required this.categorySales,
+    required this.paymentSales,
     required this.period,
     required this.selectedDate,
   });
@@ -41,6 +43,7 @@ class SalesReportLoaded extends SalesReportState {
     totalCost,
     totalProfit,
     categorySales,
+    paymentSales,
     period,
     selectedDate,
   ];
@@ -91,6 +94,9 @@ class SalesReportCubit extends Cubit<SalesReportState> {
           totalProfit: report['total_profit'],
           categorySales: List<Map<String, dynamic>>.from(
             report['category_sales'],
+          ),
+          paymentSales: List<Map<String, dynamic>>.from(
+            report['payment_sales'],
           ),
           period: period,
           selectedDate: targetDate,

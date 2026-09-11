@@ -5,6 +5,7 @@ import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/util/modern_dialog.dart';
 import 'package:pos/core/util/responsive_layout.dart';
+import 'package:pos/core/widgets/shimmer_loading.dart';
 import '../cubit/category_cubit.dart';
 
 class CategoryManageScreen extends StatefulWidget {
@@ -64,7 +65,20 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
         },
         builder: (context, state) {
           if (state is CategoryLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: ResponsiveLayout.contentMaxWidth(
+                    context,
+                    maxWidth: 760,
+                  ),
+                ),
+                child: ListShimmer(
+                  itemCount: 6,
+                  padding: ResponsiveLayout.pagePadding(context),
+                ),
+              ),
+            );
           } else if (state is CategoryLoaded) {
             if (state.categories.isEmpty) {
               return Center(

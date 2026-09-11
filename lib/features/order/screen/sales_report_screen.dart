@@ -4,7 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/currency_helper.dart';
+import 'package:pos/core/helper/payment_method_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
+import 'package:pos/core/widgets/shimmer_loading.dart';
 import 'package:pos/features/order/cubit/order_cubit.dart';
 import 'package:pos/features/order/cubit/order_state.dart';
 import '../../order/cubit/sales_report_cubit.dart';
@@ -54,7 +56,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
         child: BlocBuilder<SalesReportCubit, SalesReportState>(
           builder: (context, state) {
             if (state is SalesReportLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return const SalesReportShimmer();
             } else if (state is SalesReportLoaded) {
               return LayoutBuilder(
                 builder: (context, _) {
@@ -95,6 +97,16 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                                       state.categorySales,
                                     ),
                                     SizedBox(height: 32.h),
+                                    Text(
+                                      'Metode Pembayaran',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18.sp,
+                                      ),
+                                    ),
+                                    SizedBox(height: 16.h),
+                                    _buildPaymentSalesList(state.paymentSales),
+                                    SizedBox(height: 32.h),
                                     _buildTotalRow(
                                       'Total Penjualan:',
                                       state.totalRevenue,
@@ -128,7 +140,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
             } else if (state is SalesReportError) {
               return Center(child: Text(state.message));
             }
-            return const Center(child: CircularProgressIndicator());
+            return const SalesReportShimmer();
           },
         ),
       ),
@@ -351,6 +363,95 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                     ),
                   ),
                 ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPaymentSalesList(List<Map<String, dynamic>> paymentSales) {
+    if (paymentSales.isEmpty) {
+      return Center(
+        child: Text(
+          'Belum ada data pembayaran',
+          style: AppStyles.subtitleStyle,
+        ),
+      );
+    }
+
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: paymentSales.length,
+      separatorBuilder: (context, _) => SizedBox(height: 12.h),
+      itemBuilder: (context, index) {
+        final payment = paymentSales[index];
+        final method = payment['payment_method'] as String? ?? '';
+        final count = payment['count'] as int? ?? 0;
+        final revenue = (payment['revenue'] as num?)?.toDouble() ?? 0;
+        final isQris = method == PaymentMethodHelper.qris;
+        final color = isQris ? AppColors.primary : AppColors.secondary;
+
+        return Container(
+          padding: EdgeInsets.all(20.w),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20.r),
+            border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Icon(
+                  isQris ? Icons.qr_code_2_rounded : Icons.payments_rounded,
+                  color: color,
+                  size: 22.r,
+                ),
+              ),
+              SizedBox(width: 14.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      PaymentMethodHelper.label(method),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15.sp,
+                      ),
+                    ),
+                    SizedBox(height: 4.h),
+                    Text(
+                      '$count transaksi',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12.sp,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    CurrencyHelper.formatIdr(revenue),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                      fontSize: 15.sp,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

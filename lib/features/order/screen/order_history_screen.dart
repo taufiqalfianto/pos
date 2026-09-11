@@ -4,7 +4,9 @@ import 'package:intl/intl.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/currency_helper.dart';
+import 'package:pos/core/helper/payment_method_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
+import 'package:pos/core/widgets/shimmer_loading.dart';
 import 'package:pos/features/order/cubit/order_cubit.dart';
 import 'package:pos/features/order/cubit/order_state.dart';
 import 'package:pos/features/order/data/model/order_model.dart';
@@ -41,7 +43,22 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
             current is OrderError,
         builder: (context, state) {
           if (state is OrderLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: ResponsiveLayout.contentMaxWidth(
+                    context,
+                    maxWidth: 840,
+                  ),
+                ),
+                child: ListShimmer(
+                  itemCount: 6,
+                  itemHeight: 96,
+                  padding: ResponsiveLayout.pagePadding(context),
+                  withAvatar: false,
+                ),
+              ),
+            );
           }
 
           if (state is OrderHistoryLoaded) {
@@ -126,7 +143,7 @@ class _PremiumHistoryCard extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          DateFormat('dd MMM yyyy, HH:mm').format(order.createdAt),
+          '${DateFormat('dd MMM yyyy, HH:mm').format(order.createdAt)} • ${PaymentMethodHelper.label(order.paymentMethod)}',
           style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary),
         ),
         trailing: Text(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pos/core/widgets/app_logo.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pos/core/helper/local_data_warning_helper.dart';
 import 'package:pos/features/auth/cubit/auth_cubit.dart';
 import 'package:pos/features/auth/cubit/auth_state.dart';
 import 'package:pos/core/util/app_style.dart';
@@ -53,6 +54,14 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.wait([Future.delayed(const Duration(seconds: 3))]);
 
     if (!mounted) return;
+
+    final shouldShowWarning = await LocalDataWarningHelper.shouldShowWarning();
+    if (!mounted) return;
+
+    if (shouldShowWarning) {
+      context.go('/local-data-warning');
+      return;
+    }
 
     final state = context.read<AuthCubit>().state;
     if (state is Authenticated) {

@@ -41,7 +41,9 @@ class _AppShimmerState extends State<AppShimmer>
           blendMode: BlendMode.srcATop,
           shaderCallback: (bounds) {
             final shimmerWidth = bounds.width * 0.6;
-            final start = -shimmerWidth + (bounds.width + shimmerWidth * 2) * _controller.value;
+            final start =
+                -shimmerWidth +
+                (bounds.width + shimmerWidth * 2) * _controller.value;
 
             return LinearGradient(
               begin: Alignment.centerLeft,
@@ -107,6 +109,7 @@ class ProductGridShimmer extends StatelessWidget {
     this.padding,
     this.crossAxisSpacing,
     this.mainAxisSpacing,
+    this.shrinkWrap = false,
   });
 
   final int crossAxisCount;
@@ -115,11 +118,13 @@ class ProductGridShimmer extends StatelessWidget {
   final EdgeInsets? padding;
   final double? crossAxisSpacing;
   final double? mainAxisSpacing;
+  final bool shrinkWrap;
 
   @override
   Widget build(BuildContext context) {
     return AppShimmer(
       child: GridView.builder(
+        shrinkWrap: shrinkWrap,
         physics: const NeverScrollableScrollPhysics(),
         padding: padding ?? ResponsiveLayout.pagePadding(context),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -146,9 +151,7 @@ class _ProductCardSkeleton extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Container(color: Colors.white),
-          ),
+          Expanded(child: Container(color: Colors.white)),
           Padding(
             padding: EdgeInsets.all(12.w),
             child: Column(
@@ -193,6 +196,7 @@ class ListShimmer extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppShimmer(
       child: ListView.separated(
+        shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         padding: padding ?? ResponsiveLayout.pagePadding(context),
         itemCount: itemCount,
@@ -246,7 +250,10 @@ class SalesReportShimmer extends StatelessWidget {
         child: Center(
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: ResponsiveLayout.contentMaxWidth(context, maxWidth: 980),
+              maxWidth: ResponsiveLayout.contentMaxWidth(
+                context,
+                maxWidth: 980,
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
