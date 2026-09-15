@@ -79,21 +79,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           await context.read<ProductCubit>().loadProducts();
                         },
                         color: AppColors.primary,
-                        child: GridView.builder(
+                        child: ListView(
                           physics: const AlwaysScrollableScrollPhysics(),
                           padding: gridPadding,
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: grid.columns,
-                                childAspectRatio: grid.aspectRatio,
-                                crossAxisSpacing: 16.w,
-                                mainAxisSpacing: 16.h,
-                              ),
-                          itemCount: state.products.length,
-                          itemBuilder: (context, index) {
-                            final product = state.products[index];
-                            return _PremiumProductCard(product: product);
-                          },
+                          children: [
+                            for (final entry
+                                in groupProductsByCategory(
+                                  state.products,
+                                ).entries)
+                              _buildCategorySection(entry.key, entry.value, grid),
+                          ],
                         ),
                       );
                     }
@@ -196,6 +191,75 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Satu kelompok kategori: header + grid produk kelompok tersebut.
+  ///
+  /// ponytail: grid `shrinkWrap` di dalam ListView membangun semua kartu
+  /// seketika; ganti ke sliver (`CustomScrollView` + `SliverGrid`) kalau jumlah
+  /// produk sudah ratusan.
+  Widget _buildCategorySection(
+    String category,
+    List<ProductModel> products,
+    ({int columns, double aspectRatio}) grid,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(top: 4.h, bottom: 10.h),
+          child: Row(
+            children: [
+              Flexible(
+                child: Text(
+                  category,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppStyles.subtitleStyle.copyWith(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+              SizedBox(width: 8.w),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 10.w,
+                  vertical: 2.h,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(AppStyles.radiusInner.r),
+                ),
+                child: Text(
+                  '${products.length}',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: grid.columns,
+            childAspectRatio: grid.aspectRatio,
+            crossAxisSpacing: 16.w,
+            mainAxisSpacing: 16.h,
+          ),
+          itemCount: products.length,
+          itemBuilder: (context, index) =>
+              _PremiumProductCard(product: products[index]),
+        ),
+        SizedBox(height: 16.h),
+      ],
     );
   }
 
@@ -470,4 +534,24 @@ class _PremiumProductCard extends StatelessWidget {
       },
     );
   }
+}
+
+/// Kelompokkan produk dashboard per nama kategori, kunci terurut alfabetis
+/// supaya urutan header stabil.
+///
+/// Kategori bawaan `general` bisa tak punya baris di tabel `categories`
+/// (Join `getProducts` menghasilkan nama null) → dilabeli 'Umum'.
+Map<String, List<ProductModel>> groupProductsByCategory(
+  List<ProductModel> products,
+) {
+  final grouped = <String, List<ProductModel>>{};
+  for (final product in products) {
+    final name =
+        product.categoryName ??
+        (product.categoryId == 'general' ? 'Umum' : product.categoryId);
+    grouped.putIfAbsent(name, () => <ProductModel>[]).add(product);
+  }
+  return Map.fromEntries(
+    grouped.entries.toList()..sort((a, b) => a.key.compareTo(b.key)),
+  );
 }

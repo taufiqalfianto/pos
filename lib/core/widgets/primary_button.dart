@@ -26,12 +26,13 @@ class PrimaryButton extends StatelessWidget {
   final double? width;
 
   /// Tinggi kanonik CTA per breakpoint.
-  static double heightFor(BuildContext context) => ResponsiveLayout.adaptiveValue(
-    context,
-    portrait: 60,
-    landscape: 52,
-    tablet: 52,
-  ).h;
+  static double heightFor(BuildContext context) =>
+      ResponsiveLayout.adaptiveValue(
+        context,
+        portrait: 60,
+        landscape: 52,
+        tablet: 52,
+      ).h;
 
   @override
   Widget build(BuildContext context) {
