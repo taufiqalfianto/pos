@@ -184,31 +184,39 @@ class _OrderScreenState extends State<OrderScreen> {
               ? state.items
               : orderCubit.cartItems;
 
-          return Scrollbar(
-            controller: _cartScrollController,
-            thumbVisibility: true,
-            thickness: 4.w,
-            radius: Radius.circular(8.r),
-            child: ListView(
-              controller: _cartScrollController,
-              padding: EdgeInsets.zero,
-              children: [
-                _buildCartHeader(context, compact: compact),
-                if (items.isEmpty)
-                  _buildEmptyCartPlaceholder(context, compact)
-                else
-                  ...items.map(
-                    (item) => Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12.w,
-                        vertical: 4.h,
-                      ),
-                      child: _CartItemTile(item: item),
-                    ),
+          // Footer checkout dikunci di dasar kartu: hanya daftar item yang
+          // ikut terscroll, jadi tombol BAYAR selalu terlihat.
+          return Column(
+            children: [
+              Expanded(
+                child: Scrollbar(
+                  controller: _cartScrollController,
+                  thumbVisibility: true,
+                  thickness: 4.w,
+                  radius: Radius.circular(8.r),
+                  child: ListView(
+                    controller: _cartScrollController,
+                    padding: EdgeInsets.zero,
+                    children: [
+                      _buildCartHeader(context, compact: compact),
+                      if (items.isEmpty)
+                        _buildEmptyCartPlaceholder(context, compact)
+                      else
+                        ...items.map(
+                          (item) => Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12.w,
+                              vertical: 4.h,
+                            ),
+                            child: _CartItemTile(item: item),
+                          ),
+                        ),
+                    ],
                   ),
-                _buildCheckoutFooter(context, compact: compact),
-              ],
-            ),
+                ),
+              ),
+              _buildCheckoutFooter(context, compact: compact),
+            ],
           );
         },
       ),
@@ -721,7 +729,7 @@ class _OrderProductItem extends StatelessWidget {
 
     return GestureDetector(
       onTap: isOutOfStock
-          ? null
+          ? () => ToastHelper.showError(context, 'Produk Out of Stock')
           : () => context.read<OrderCubit>().addItem(product),
       child: Container(
         decoration: AppStyles.glassDecoration(
