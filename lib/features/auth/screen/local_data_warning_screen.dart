@@ -6,7 +6,7 @@ import 'package:pos/core/helper/local_data_warning_helper.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/util/responsive_layout.dart';
 import 'package:pos/core/widgets/app_logo.dart';
-import 'package:pos/core/widgets/loading_button_child.dart';
+import 'package:pos/core/widgets/primary_button.dart';
 import 'package:pos/features/auth/cubit/auth_cubit.dart';
 import 'package:pos/features/auth/cubit/auth_state.dart';
 
@@ -174,29 +174,10 @@ class _LocalDataWarningScreenState extends State<LocalDataWarningScreen> {
                         ),
                       ),
                       SizedBox(height: 20.h),
-                      SizedBox(
-                        height: ResponsiveLayout.adaptiveValue(
-                          context,
-                          portrait: 56,
-                          landscape: 50,
-                          tablet: 52,
-                        ).h,
-                        child: FilledButton(
-                          onPressed: _isAccepting ? null : _continue,
-                          style: FilledButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18.r),
-                            ),
-                          ),
-                          child: LoadingButtonChild(
-                            isLoading: _isAccepting,
-                            label: 'SAYA MENGERTI, LANJUTKAN',
-                            textStyle: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.8,
-                            ),
-                          ),
-                        ),
+                      PrimaryButton(
+                        isLoading: _isAccepting,
+                        label: 'SAYA MENGERTI, LANJUTKAN',
+                        onPressed: _isAccepting ? null : _continue,
                       ),
                     ],
                   ),
@@ -232,7 +213,7 @@ class _WarningItem extends StatelessWidget {
             padding: EdgeInsets.all(9.w),
             decoration: BoxDecoration(
               color: AppColors.primarySoft,
-              borderRadius: BorderRadius.circular(14.r),
+              borderRadius: BorderRadius.circular(AppStyles.radiusInner.r),
             ),
             child: Icon(icon, color: AppColors.primary, size: 22.r),
           ),

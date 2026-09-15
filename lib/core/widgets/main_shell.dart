@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:pos/core/widgets/app_logo.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos/core/util/app_style.dart';
-import 'package:pos/core/util/responsive_layout.dart';
 import 'package:pos/features/auth/cubit/auth_cubit.dart';
 import 'package:pos/features/auth/cubit/auth_state.dart';
 import 'package:pos/features/order/cubit/sales_report_cubit.dart';
 
-/// Shell navigasi adaptif (AC: Navigasi Adaptif).
+/// Shell navigasi: satu BottomNavigationBar untuk semua ukuran layar
+/// (mobile & tablet), tanpa NavigationRail dan tanpa Drawer.
 ///
-/// - Lebar < 840px (mobile & tablet portrait): BottomNavigationBar.
-/// - Lebar >= 840px (tablet landscape): NavigationRail di sisi kiri,
-///   sehingga layar lebar dimanfaatkan secara optimal.
+/// Menu yang dulu ada di Drawer (Manajemen Kategori, Edit Profil,
+/// Ubah Password, Logout) dipindahkan ke tab "Menu" pada bottom navigation
+/// bar agar tetap terjangkau dari tablet.
 class MainShell extends StatelessWidget {
   const MainShell({super.key, required this.navigationShell});
 
@@ -51,56 +50,10 @@ class MainShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final useRail = ResponsiveLayout.of(context).useRail;
-
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: useRail ? _buildRailLayout(context) : navigationShell,
-      bottomNavigationBar: useRail ? null : _buildNavigationBar(context),
-    );
-  }
-
-  Widget _buildRailLayout(BuildContext context) {
-    final extended = MediaQuery.sizeOf(context).width >= 1000;
-
-    return SafeArea(
-      // Hanya amankan sisi kiri (notch pada landscape); status bar & home
-      // indicator sudah ditangani AppBar screen & Scaffold.
-      left: true,
-      top: false,
-      right: false,
-      bottom: false,
-      child: Row(
-        children: [
-          NavigationRail(
-            extended: extended,
-            backgroundColor: Colors.white,
-            selectedIndex: navigationShell.currentIndex,
-            onDestinationSelected: (index) =>
-                _onDestinationSelected(context, index),
-            indicatorColor: AppColors.primary.withValues(alpha: 0.12),
-            selectedIconTheme: const IconThemeData(color: AppColors.primary),
-            selectedLabelTextStyle: const TextStyle(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w600,
-            ),
-            leading: Padding(
-              padding: EdgeInsets.only(top: 12.h, bottom: 8.h),
-              child: AppLogo(size: extended ? 48.w : 40.w),
-            ),
-            destinations: [
-              for (final d in _destinations)
-                NavigationRailDestination(
-                  icon: Icon(d.icon),
-                  selectedIcon: Icon(d.selectedIcon),
-                  label: Text(d.label),
-                ),
-            ],
-          ),
-          VerticalDivider(width: 1.w, thickness: 1.w),
-          Expanded(child: navigationShell),
-        ],
-      ),
+      body: navigationShell,
+      bottomNavigationBar: _buildNavigationBar(context),
     );
   }
 

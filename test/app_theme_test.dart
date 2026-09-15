@@ -7,20 +7,23 @@ import 'package:pos/core/util/responsive_layout.dart';
 
 void main() {
   Widget buildApp() {
-    return ScreenUtilInit(
-      designSize: const Size(393, 852), // sama dengan lib/app.dart
-      splitScreenMode: true,
-      fontSizeResolver: (fontSize, instance) =>
-          (fontSize *
-                  AppBreakpointResolver.fontScaleFor(
-                    instance.screenWidth,
-                    instance.screenHeight,
-                  ))
-              .toDouble(),
-      builder: (context, child) => MaterialApp(
-        theme: AppTheme.lightTheme(context),
-        home: const Scaffold(
-          body: Center(child: FilledButton(onPressed: null, child: Text('OK'))),
+    return LayoutBuilder(
+      builder: (context, constraints) => ScreenUtilInit(
+        designSize: AppBreakpointResolver.designSizeFor(constraints.biggest),
+        splitScreenMode: true,
+        fontSizeResolver: (fontSize, instance) =>
+            AppBreakpointResolver.scaledFontSize(
+              fontSize,
+              instance.screenWidth,
+              instance.screenHeight,
+            ),
+        builder: (context, child) => MaterialApp(
+          theme: AppTheme.lightTheme(context),
+          home: const Scaffold(
+            body: Center(
+              child: FilledButton(onPressed: null, child: Text('OK')),
+            ),
+          ),
         ),
       ),
     );
@@ -69,11 +72,11 @@ void main() {
     expect(tt.bodyMedium?.fontSize, closeTo(12.6, 0.001));
     expect(tt.titleLarge?.fontSize, closeTo(18.0, 0.001));
 
-    // Tablet landscape 1024x768 → skala 0.95
+    // Tablet landscape 1024x768 → skala 1.1
     await pumpAt(tester, const Size(1024, 768));
     expect(tester.takeException(), isNull);
     tt = textThemeAt(tester);
-    expect(tt.labelLarge?.fontSize, closeTo(13.3, 0.001));
+    expect(tt.labelLarge?.fontSize, closeTo(15.4, 0.001));
   });
 
   testWidgets('theme memakai palet warna dari logo POS', (tester) async {

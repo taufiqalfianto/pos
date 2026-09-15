@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
-import 'package:pos/core/widgets/loading_button_child.dart';
+import 'package:pos/core/widgets/primary_button.dart';
 import 'package:uuid/uuid.dart';
 import '../cubit/auth_cubit.dart';
 import '../data/model/user_model.dart';
@@ -216,45 +216,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
               },
             ),
             SizedBox(height: isTablet ? 28.h : 40.h),
-            SizedBox(
-              width: double.infinity,
-              height: isTablet ? 52.h : 60.h,
-              child: BlocBuilder<AuthCubit, AuthState>(
-                builder: (context, state) {
-                  final isLoading = state is AuthLoading;
-                  return FilledButton(
-                    onPressed: isLoading
-                        ? null
-                        : () {
-                            if (_formKey.currentState!.validate()) {
-                              final user = UserModel(
-                                id: const Uuid().v4(),
-                                name: _nameController.text,
-                                username: _usernameController.text,
-                                password: _passwordController.text,
-                              );
-                              context.read<AuthCubit>().register(user);
-                            }
-                          },
-                    style: FilledButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          isTablet ? 16.r : 20.r,
-                        ),
-                      ),
-                    ),
-                    child: LoadingButtonChild(
-                      isLoading: isLoading,
-                      label: 'DAFTAR',
-                      textStyle: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                  );
-                },
-              ),
+            BlocBuilder<AuthCubit, AuthState>(
+              builder: (context, state) {
+                final isLoading = state is AuthLoading;
+                return PrimaryButton(
+                  isLoading: isLoading,
+                  label: 'DAFTAR',
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          if (_formKey.currentState!.validate()) {
+                            final user = UserModel(
+                              id: const Uuid().v4(),
+                              name: _nameController.text,
+                              username: _usernameController.text,
+                              password: _passwordController.text,
+                            );
+                            context.read<AuthCubit>().register(user);
+                          }
+                        },
+                );
+              },
             ),
             SizedBox(height: isTablet ? 16.h : 24.h),
             BlocBuilder<AuthCubit, AuthState>(

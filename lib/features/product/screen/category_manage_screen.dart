@@ -5,6 +5,7 @@ import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/util/modern_dialog.dart';
 import 'package:pos/core/util/responsive_layout.dart';
+import 'package:pos/core/widgets/app_app_bar.dart';
 import 'package:pos/core/widgets/shimmer_loading.dart';
 import '../cubit/category_cubit.dart';
 
@@ -48,7 +49,7 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppAppBar(
         title: const Text('Manajemen Kategori'),
         actions: [
           IconButton(
@@ -116,14 +117,8 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                         final isGeneral = category.id == 'general';
 
                         return Container(
-                          padding: EdgeInsets.all(16.w),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20.r),
-                            border: Border.all(
-                              color: Colors.black.withValues(alpha: 0.05),
-                            ),
-                          ),
+                          padding: EdgeInsets.all(20.w),
+                          decoration: AppStyles.cardDecoration(),
                           child: Row(
                             children: [
                               Container(

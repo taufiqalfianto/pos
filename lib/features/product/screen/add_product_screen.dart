@@ -10,7 +10,8 @@ import 'package:pos/features/product/data/model/product_model.dart';
 import 'package:uuid/uuid.dart';
 import 'package:pos/core/helper/file_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
-import 'package:pos/core/widgets/loading_button_child.dart';
+import 'package:pos/core/widgets/app_app_bar.dart';
+import 'package:pos/core/widgets/primary_button.dart';
 import '../cubit/product_cubit.dart';
 
 import '../cubit/category_cubit.dart';
@@ -98,7 +99,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget build(BuildContext context) {
     final isTablet = ResponsiveLayout.isTablet(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Tambah Produk')),
+      appBar: AppAppBar(title: const Text('Tambah Produk')),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth > 800;
@@ -390,29 +391,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
           ),
           SizedBox(height: 40.h),
-          SizedBox(
-            height: ResponsiveLayout.adaptiveValue(
-              context,
-              portrait: 60,
-              landscape: 52,
-              tablet: 52,
-            ).h,
-            child: FilledButton(
-              onPressed: _isSaving ? null : () => _saveProduct(),
-              style: FilledButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-              ),
-              child: LoadingButtonChild(
-                isLoading: _isSaving,
-                label: 'SIMPAN PRODUK',
-                textStyle: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1,
-                ),
-              ),
-            ),
+          PrimaryButton(
+            isLoading: _isSaving,
+            label: 'SIMPAN PRODUK',
+            onPressed: _isSaving ? null : () => _saveProduct(),
           ),
         ],
       ),

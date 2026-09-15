@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/core/util/responsive_layout.dart';
 
@@ -59,18 +60,54 @@ void main() {
       expect(AppBreakpointResolver.fontScaleFor(761, 390), 0.9);
     });
 
-    test('Tablet portrait tetap 1.0', () {
-      expect(AppBreakpointResolver.fontScaleFor(600, 800), 1.0);
-      expect(AppBreakpointResolver.fontScaleFor(768, 1024), 1.0);
-      expect(AppBreakpointResolver.fontScaleFor(839, 1024), 1.0);
+    test('Tablet font dibesarkan ke 1.1', () {
+      expect(AppBreakpointResolver.fontScaleFor(600, 800), 1.1);
+      expect(AppBreakpointResolver.fontScaleFor(768, 1024), 1.1);
+      expect(AppBreakpointResolver.fontScaleFor(800, 1280), 1.1);
+      expect(AppBreakpointResolver.fontScaleFor(840, 600), 1.1);
+      expect(AppBreakpointResolver.fontScaleFor(1024, 768), 1.1);
+      expect(AppBreakpointResolver.fontScaleFor(915, 412), 1.1);
     });
 
-    test('Tablet landscape / wide 0.95, desktop 1.0', () {
-      expect(AppBreakpointResolver.fontScaleFor(840, 600), 0.95);
-      expect(AppBreakpointResolver.fontScaleFor(1024, 768), 0.95);
-      expect(AppBreakpointResolver.fontScaleFor(915, 412), 0.95);
-      expect(AppBreakpointResolver.fontScaleFor(1200, 800), 1.0);
-      expect(AppBreakpointResolver.fontScaleFor(1366, 768), 1.0);
+    test('Layar lebar / desktop 1.15', () {
+      expect(AppBreakpointResolver.fontScaleFor(1200, 800), 1.15);
+      expect(AppBreakpointResolver.fontScaleFor(1280, 800), 1.15);
+      expect(AppBreakpointResolver.fontScaleFor(1366, 768), 1.15);
+    });
+
+    test('scaledFontSize mengalikan faktor breakpoint', () {
+      expect(AppBreakpointResolver.scaledFontSize(12, 393, 852), 12);
+      expect(
+        AppBreakpointResolver.scaledFontSize(12, 1280, 800),
+        closeTo(13.8, 0.001),
+      );
+    });
+  });
+
+  group('AppBreakpointResolver.designSizeFor', () {
+    test('ponsel memakai ukuran desain asli', () {
+      expect(
+        AppBreakpointResolver.designSizeFor(const Size(393, 852)),
+        AppBreakpointResolver.phoneDesignSize,
+      );
+      expect(
+        AppBreakpointResolver.designSizeFor(const Size(412, 915)),
+        AppBreakpointResolver.phoneDesignSize,
+      );
+    });
+
+    test('tablet membatasi skala lebar ke maxWidthScale', () {
+      for (final size in const [
+        Size(744, 1133),
+        Size(800, 1280),
+        Size(1024, 768),
+        Size(1280, 800),
+        Size(1440, 900),
+      ]) {
+        final design = AppBreakpointResolver.designSizeFor(size);
+        expect(size.width / design.width, lessThanOrEqualTo(1.5 + 1e-9));
+        expect(size.height / design.height, lessThanOrEqualTo(1.5 + 1e-9));
+      }
     });
   });
 }

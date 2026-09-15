@@ -11,7 +11,13 @@ class FakeProductRepository extends ProductRepository {
   @override
   Future<List<ProductModel>> getProducts() async {
     return const [
-      ProductModel(id: '1', name: 'Kopi', price: 15000, imagePath: '', stock: 10),
+      ProductModel(
+        id: '1',
+        name: 'Kopi',
+        price: 15000,
+        imagePath: '',
+        stock: 10,
+      ),
     ];
   }
 

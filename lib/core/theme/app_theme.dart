@@ -5,6 +5,20 @@ import 'package:pos/core/util/responsive_layout.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AppTheme {
+  /// Bentuk kanonik semua tombol: radius [AppStyles.radiusCard].
+  static final RoundedRectangleBorder buttonShape = RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(AppStyles.radiusCard.r),
+  );
+
+  /// Tipografi kanonik tombol, diturunkan dari textTheme runtime agar font
+  /// family tema (Poppins, atau Roboto di test) ikut terbawa.
+  static TextStyle buttonTextStyle(TextTheme textTheme) =>
+      textTheme.labelLarge!.copyWith(
+        fontSize: 16.sp,
+        fontWeight: FontWeight.bold,
+        letterSpacing: 1,
+      );
+
   static ThemeData lightTheme(BuildContext context) {
     final isLandscape = context.isLandscape;
     final isTablet = ResponsiveLayout.isTablet(context);
@@ -56,12 +70,14 @@ class AppTheme {
         labelSmall: base.labelSmall?.copyWith(fontSize: 11.sp),
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        iconTheme: IconThemeData(color: AppColors.textPrimary),
+        iconTheme: const IconThemeData(color: Colors.white),
         titleTextStyle: TextStyle(
-          color: AppColors.textPrimary,
+          color: Colors.white,
           fontSize: 20.sp,
           fontWeight: FontWeight.bold,
           letterSpacing: -0.5,
@@ -70,7 +86,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24.r),
+          borderRadius: BorderRadius.circular(AppStyles.radiusCard.r),
         ),
         color: Colors.white,
         surfaceTintColor: AppColors.primarySoft,
@@ -79,9 +95,11 @@ class AppTheme {
         filled: true,
         fillColor: Colors.white,
         isDense: true,
+        // Tablet: field sedikit lebih lega supaya target sentuh tetap nyaman
+        // walau `.h` landskap tablet hanya ~0.9-1.5x.
         contentPadding: EdgeInsets.symmetric(
-          horizontal: isLandscape || isTablet ? 16.w : 20.w,
-          vertical: isLandscape || isTablet ? 10.h : 16.h,
+          horizontal: isTablet ? 18.w : (isLandscape ? 16.w : 20.w),
+          vertical: isTablet ? 14.h : (isLandscape ? 10.h : 16.h),
         ),
         prefixIconColor: AppColors.textSecondary,
         suffixIconColor: AppColors.textSecondary,
@@ -99,12 +117,17 @@ class AppTheme {
           borderSide: BorderSide(color: AppColors.primary, width: 2.w),
         ),
       ),
+      // Semua varian tombol memakai radius kanonik yang sama, sehingga tidak
+      // perlu lagi `shape:` per pemanggilan. Tipografi tombol diambil dari
+      // textTheme (bukan ditempel di sini) supaya override font theme tetap
+      // terbawa; lihat [buttonTextStyle].
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           disabledBackgroundColor: AppColors.primarySoft,
           disabledForegroundColor: AppColors.textSecondary,
+          shape: buttonShape,
         ),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
@@ -112,11 +135,15 @@ class AppTheme {
         foregroundColor: Colors.white,
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          shape: buttonShape,
+        ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
+          shape: buttonShape,
           side: const BorderSide(color: AppColors.primary),
         ),
       ),

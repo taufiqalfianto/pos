@@ -4,7 +4,8 @@ import 'package:uuid/uuid.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
-import 'package:pos/core/widgets/loading_button_child.dart';
+import 'package:pos/core/widgets/app_app_bar.dart';
+import 'package:pos/core/widgets/primary_button.dart';
 import '../cubit/stock_report_cubit.dart';
 import '../data/model/product_model.dart';
 import '../data/model/stock_report_model.dart';
@@ -48,7 +49,7 @@ class _AddStockReportScreenState extends State<AddStockReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Input Stok Manual')),
+      appBar: AppAppBar(title: const Text('Input Stok Manual')),
       body: BlocListener<StockReportCubit, StockReportState>(
         listener: (context, state) {
           if (state is StockReportSuccess) {
@@ -123,37 +124,15 @@ class _AddStockReportScreenState extends State<AddStockReportScreen> {
                           ),
                         ),
                         SizedBox(height: 48.h),
-                        SizedBox(
-                          height: ResponsiveLayout.adaptiveValue(
-                            context,
-                            portrait: 60,
-                            landscape: 52,
-                            tablet: 52,
-                          ).h,
-                          child:
-                              BlocBuilder<StockReportCubit, StockReportState>(
-                                builder: (context, state) {
-                                  final isLoading = state is StockReportLoading;
-                                  return FilledButton(
-                                    onPressed: isLoading ? null : _submit,
-                                    style: FilledButton.styleFrom(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          20.r,
-                                        ),
-                                      ),
-                                    ),
-                                    child: LoadingButtonChild(
-                                      isLoading: isLoading,
-                                      label: 'SIMPAN PENYESUAIAN',
-                                      textStyle: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 1,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
+                        BlocBuilder<StockReportCubit, StockReportState>(
+                          builder: (context, state) {
+                            final isLoading = state is StockReportLoading;
+                            return PrimaryButton(
+                              isLoading: isLoading,
+                              label: 'SIMPAN PENYESUAIAN',
+                              onPressed: isLoading ? null : _submit,
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -170,9 +149,9 @@ class _AddStockReportScreenState extends State<AddStockReportScreen> {
   Widget _buildProductInfo() {
     return Container(
       padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
+      decoration: AppStyles.cardDecoration(
         color: AppColors.primary.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(24.r),
+        border: false,
       ),
       child: Row(
         children: [

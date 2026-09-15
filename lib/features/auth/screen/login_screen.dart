@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
-import 'package:pos/core/widgets/loading_button_child.dart';
+import 'package:pos/core/widgets/primary_button.dart';
 import '../../../core/util/responsive_layout.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
@@ -213,42 +213,24 @@ class _LoginScreenState extends State<LoginScreen> {
               validator: (val) => val!.isEmpty ? 'Password harus diisi' : null,
             ),
             SizedBox(height: isTablet ? 28.h : 40.h),
-            SizedBox(
-              width: double.infinity,
-              height: isTablet ? 52.h : 56.h,
-              child: BlocBuilder<AuthCubit, AuthState>(
-                builder: (context, state) {
-                  final isLoading = state is AuthLoading;
-                  return FilledButton(
-                    onPressed: isLoading
-                        ? null
-                        : () {
-                            if (_formKey.currentState!.validate()) {
-                              context.read<AuthCubit>().login(
-                                _usernameController.text,
-                                _passwordController.text,
-                              );
-                            }
-                          },
-                    style: FilledButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          isTablet ? 16.r : 18.r,
-                        ),
-                      ),
-                    ),
-                    child: LoadingButtonChild(
-                      isLoading: isLoading,
-                      label: 'Masuk Sekarang',
-                      textStyle: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                  );
-                },
-              ),
+            BlocBuilder<AuthCubit, AuthState>(
+              builder: (context, state) {
+                final isLoading = state is AuthLoading;
+                return PrimaryButton(
+                  isLoading: isLoading,
+                  label: 'Masuk Sekarang',
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          if (_formKey.currentState!.validate()) {
+                            context.read<AuthCubit>().login(
+                              _usernameController.text,
+                              _passwordController.text,
+                            );
+                          }
+                        },
+                );
+              },
             ),
             SizedBox(height: isTablet ? 16.h : 20.h),
             BlocBuilder<AuthCubit, AuthState>(

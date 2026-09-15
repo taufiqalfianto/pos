@@ -10,6 +10,7 @@ import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/helper/file_helper.dart';
 import 'package:pos/core/helper/payment_method_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
+import 'package:pos/core/widgets/app_app_bar.dart';
 import 'package:pos/core/widgets/loading_button_child.dart';
 import 'package:pos/core/widgets/shimmer_loading.dart';
 import 'package:pos/features/order/cubit/order_cubit.dart';
@@ -36,7 +37,7 @@ class _OrderScreenState extends State<OrderScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppAppBar(
         title: const Text('Kasir'),
         actions: [
           IconButton(
@@ -62,7 +63,7 @@ class _OrderScreenState extends State<OrderScreen> {
             if (!isTabletWidth) {
               return Column(
                 children: [
-                  Expanded(child: _buildProductGrid(context, 2)),
+                  Expanded(child: _buildProductGrid(context)),
                   SizedBox(
                     // Tinggi cart adaptif: hindari overflow di layar pendek
                     // (landscape) maupun saat keyboard terbuka.
@@ -73,18 +74,9 @@ class _OrderScreenState extends State<OrderScreen> {
               );
             }
 
-            final productColumns = ResponsiveLayout.gridColumns(
-              context,
-              portrait: 2,
-              landscape: 3,
-              tablet: 3,
-              wide: 4,
-              desktop: 5,
-            );
-
             return Row(
               children: [
-                Expanded(child: _buildProductGrid(context, productColumns)),
+                Expanded(child: _buildProductGrid(context)),
                 VerticalDivider(width: 1.w, color: Colors.black12),
                 Expanded(child: _buildGlassCart(context)),
               ],
@@ -95,9 +87,18 @@ class _OrderScreenState extends State<OrderScreen> {
     );
   }
 
-  Widget _buildProductGrid(BuildContext context, int crossAxisCount) {
+  Widget _buildProductGrid(BuildContext context) {
     final isLandscape = context.isLandscape;
     final isTablet = ResponsiveLayout.of(context).isTablet;
+    final useHorizontalItem = isLandscape && !isTablet;
+    final gridPadding = EdgeInsets.fromLTRB(
+      isLandscape || isTablet ? 12.w : 20.w,
+      0,
+      isLandscape || isTablet ? 12.w : 20.w,
+      isLandscape || isTablet ? 12.h : 20.h,
+    );
+    final gridSpacing = isLandscape || isTablet ? 10.w : 12.w;
+    final mainSpacing = isLandscape || isTablet ? 10.h : 12.h;
 
     return Column(
       children: [
@@ -120,47 +121,46 @@ class _OrderScreenState extends State<OrderScreen> {
           ),
         ),
         Expanded(
-          child: BlocBuilder<ProductCubit, ProductState>(
-            builder: (context, state) {
-              if (state is ProductLoading) {
-                return ProductGridShimmer(
-                  crossAxisCount: crossAxisCount,
-                  childAspectRatio: isLandscape && !isTablet
-                      ? 1.6
-                      : (isTablet ? 0.95 : 0.82),
-                  padding: EdgeInsets.fromLTRB(
-                    isLandscape || isTablet ? 12.w : 20.w,
-                    0,
-                    isLandscape || isTablet ? 12.w : 20.w,
-                    isLandscape || isTablet ? 12.h : 20.h,
-                  ),
-                  crossAxisSpacing: isLandscape || isTablet ? 10.w : 12.w,
-                  mainAxisSpacing: isLandscape || isTablet ? 10.h : 12.h,
-                );
-              }
-              if (state is ProductLoaded) {
-                return GridView.builder(
-                  padding: EdgeInsets.fromLTRB(
-                    isLandscape || isTablet ? 12.w : 20.w,
-                    0,
-                    isLandscape || isTablet ? 12.w : 20.w,
-                    isLandscape || isTablet ? 12.h : 20.h,
-                  ),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    childAspectRatio: isLandscape && !isTablet
-                        ? 1.6
-                        : (isTablet ? 0.95 : 0.82),
-                    crossAxisSpacing: isLandscape || isTablet ? 10.w : 12.w,
-                    mainAxisSpacing: isLandscape || isTablet ? 10.h : 12.h,
-                  ),
-                  itemCount: state.products.length,
-                  itemBuilder: (context, index) {
-                    return _OrderProductItem(product: state.products[index]);
-                  },
-                );
-              }
-              return const SizedBox();
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Lebar & tinggi kartu mengikuti area grid + orientasi layar.
+              final grid = ResponsiveLayout.productGridMetrics(
+                constraints.biggest,
+                padding: gridPadding,
+                spacing: gridSpacing,
+                minTileHeight: useHorizontalItem ? 110 : 150,
+              );
+              return BlocBuilder<ProductCubit, ProductState>(
+                builder: (context, state) {
+                  if (state is ProductLoading) {
+                    return ProductGridShimmer(
+                      crossAxisCount: grid.columns,
+                      childAspectRatio: grid.aspectRatio,
+                      padding: gridPadding,
+                      crossAxisSpacing: gridSpacing,
+                      mainAxisSpacing: mainSpacing,
+                    );
+                  }
+                  if (state is ProductLoaded) {
+                    return GridView.builder(
+                      padding: gridPadding,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: grid.columns,
+                        childAspectRatio: grid.aspectRatio,
+                        crossAxisSpacing: gridSpacing,
+                        mainAxisSpacing: mainSpacing,
+                      ),
+                      itemCount: state.products.length,
+                      itemBuilder: (context, index) {
+                        return _OrderProductItem(
+                          product: state.products[index],
+                        );
+                      },
+                    );
+                  }
+                  return const SizedBox();
+                },
+              );
             },
           ),
         ),
@@ -377,7 +377,7 @@ class _OrderScreenState extends State<OrderScreen> {
                           child: Text(
                             'Total',
                             style: AppStyles.subtitleStyle.copyWith(
-                              fontSize: isLandscape || isTablet ? 8.sp : 12.sp,
+                              fontSize: isLandscape || isTablet ? 16.sp : 14.sp,
                             ),
                           ),
                         ),
@@ -410,13 +410,6 @@ class _OrderScreenState extends State<OrderScreen> {
                       onPressed: hasItems && !isCheckingOut
                           ? () => _showPaymentPreviewDialog(context)
                           : null,
-                      style: FilledButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            compact ? 14.r : 18.r,
-                          ),
-                        ),
-                      ),
                       child: LoadingButtonChild(
                         isLoading: isCheckingOut,
                         label: compact ? 'BAYAR' : 'BAYAR SEKARANG',
@@ -490,9 +483,6 @@ class _OrderScreenState extends State<OrderScreen> {
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: Colors.white, width: 2.w),
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25.r),
-                        ),
                       ),
                       child: const Text(
                         'SELESAI',
@@ -530,7 +520,7 @@ class _OrderScreenState extends State<OrderScreen> {
             return AlertDialog(
               backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24.r),
+                borderRadius: BorderRadius.circular(AppStyles.radiusCard.r),
               ),
               title: Row(
                 children: [
@@ -538,7 +528,9 @@ class _OrderScreenState extends State<OrderScreen> {
                     padding: EdgeInsets.all(10.w),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(14.r),
+                      borderRadius: BorderRadius.circular(
+                        AppStyles.radiusInner.r,
+                      ),
                     ),
                     child: Icon(
                       Icons.receipt_long_rounded,
@@ -869,7 +861,7 @@ class _OrderProductItem extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.03),
               borderRadius: BorderRadius.vertical(
-                top: Radius.circular(isTablet ? 16.r : 20.r),
+                top: Radius.circular(AppStyles.radiusCard.r),
               ),
             ),
             child: Stack(
@@ -991,7 +983,7 @@ class _CartItemTile extends StatelessWidget {
       padding: EdgeInsets.all(isLandscape || isTablet ? 10.w : 12.w),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(AppStyles.radiusCard.r),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -1010,7 +1002,7 @@ class _CartItemTile extends StatelessWidget {
                   item.productName,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: isLandscape || isTablet ? 12.sp : 13.sp,
+                    fontSize: isLandscape || isTablet ? 16.sp : 14.sp,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -1019,7 +1011,7 @@ class _CartItemTile extends StatelessWidget {
                   CurrencyHelper.formatIdr(item.price),
                   style: TextStyle(
                     color: AppColors.primary,
-                    fontSize: isLandscape || isTablet ? 11.sp : 12.sp,
+                    fontSize: isLandscape || isTablet ? 16.sp : 14.sp,
                   ),
                 ),
               ],

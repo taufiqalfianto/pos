@@ -6,6 +6,7 @@ import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/currency_helper.dart';
 import 'package:pos/core/helper/payment_method_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
+import 'package:pos/core/widgets/app_app_bar.dart';
 import 'package:pos/core/widgets/shimmer_loading.dart';
 import 'package:pos/features/order/cubit/order_cubit.dart';
 import 'package:pos/features/order/cubit/order_state.dart';
@@ -33,7 +34,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Riwayat Transaksi')),
+      appBar: AppAppBar(title: const Text('Riwayat Transaksi')),
       body: BlocConsumer<OrderCubit, OrderState>(
         listenWhen: (previous, current) => current is OrderSuccess,
         listener: (context, state) => _loadHistory(),

@@ -100,11 +100,6 @@ class ModernDialog extends StatelessWidget {
                         padding: EdgeInsets.symmetric(
                           vertical: isLandscape || isTablet ? 14.h : 16.h,
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            isLandscape || isTablet ? 14.r : 16.r,
-                          ),
-                        ),
                       ),
                       child: Text(
                         cancelText,
@@ -126,11 +121,6 @@ class ModernDialog extends StatelessWidget {
                         backgroundColor: confirmColor,
                         padding: EdgeInsets.symmetric(
                           vertical: isLandscape || isTablet ? 14.h : 16.h,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            isLandscape || isTablet ? 14.r : 16.r,
-                          ),
                         ),
                       ),
                       child: Text(

@@ -6,6 +6,7 @@ import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/currency_helper.dart';
 import 'package:pos/core/helper/payment_method_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
+import 'package:pos/core/widgets/app_app_bar.dart';
 import 'package:pos/core/widgets/shimmer_loading.dart';
 import 'package:pos/features/order/cubit/order_cubit.dart';
 import 'package:pos/features/order/cubit/order_state.dart';
@@ -48,7 +49,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Laporan Penjualan')),
+      appBar: AppAppBar(title: const Text('Laporan Penjualan')),
       body: BlocListener<OrderCubit, OrderState>(
         listenWhen: (previous, current) => current is OrderSuccess,
         listener: (context, state) =>
@@ -259,15 +260,17 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
     IconData icon,
     Color color,
   ) {
+    // ponytail: pakai `.h`, bukan `.w` — sel grid menyempit di tablet/desktop
+    // sementara `.w` ikut lebar layar (lihat _StatCardSkeleton di shimmer).
     return Container(
-      padding: EdgeInsets.all(20.w),
+      padding: EdgeInsets.all(20.h),
       decoration: AppStyles.glassDecoration(borderRadius: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
-            padding: EdgeInsets.all(8.w),
+            padding: EdgeInsets.all(8.h),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12.r),
@@ -310,11 +313,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
 
         return Container(
           padding: EdgeInsets.all(20.w),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20.r),
-            border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-          ),
+          decoration: AppStyles.cardDecoration(),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -396,11 +395,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
 
         return Container(
           padding: EdgeInsets.all(20.w),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20.r),
-            border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-          ),
+          decoration: AppStyles.cardDecoration(),
           child: Row(
             children: [
               Container(

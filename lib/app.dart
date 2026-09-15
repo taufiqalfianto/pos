@@ -72,43 +72,53 @@ class _PosAppState extends State<PosApp> {
     final productRepository = ProductRepository();
     final orderRepository = OrderRepository();
 
-    return ScreenUtilInit(
-      designSize: const Size(393, 852), // iPhone 14/15 base size
-      splitScreenMode: true,
-      // Skala font global mengikuti breakpoint & orientasi, bukan lebar penuh
-      // layar, sehingga teks konsisten di portrait/landscape/tablet.
-      fontSizeResolver: (fontSize, instance) =>
-          (fontSize *
-                  AppBreakpointResolver.fontScaleFor(
-                    instance.screenWidth,
-                    instance.screenHeight,
-                  ))
-              .toDouble(),
-      builder: (context, child) {
-        return MultiBlocProvider(
-          providers: [
-            BlocProvider.value(value: widget.authCubit),
-            BlocProvider(create: (context) => ProductCubit(productRepository)),
-            BlocProvider(
-              create: (context) => StockReportCubit(productRepository),
-            ),
-            BlocProvider(
-              create: (context) =>
-                  OrderCubit(orderRepository, productRepository),
-            ),
-            BlocProvider(
-              create: (context) => CategoryCubit(CategoryRepository()),
-            ),
-            BlocProvider(
-              create: (context) => SalesReportCubit(orderRepository),
-            ),
-          ],
-          child: MaterialApp.router(
-            title: 'Flutter POS',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme(context),
-            routerConfig: _router,
-          ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screen = constraints.biggest;
+        return ScreenUtilInit(
+          // `.w` dibatasi (lihat AppBreakpointResolver.designSizeFor) supaya
+          // padding di tablet tidak membengkak 3x sementara teks tetap kecil.
+          designSize: screen.isFinite
+              ? AppBreakpointResolver.designSizeFor(screen)
+              : AppBreakpointResolver.phoneDesignSize,
+          splitScreenMode: true,
+          // Skala font global mengikuti breakpoint & orientasi, bukan lebar
+          // penuh layar, sehingga teks konsisten di portrait/landscape/tablet.
+          fontSizeResolver: (fontSize, instance) =>
+              AppBreakpointResolver.scaledFontSize(
+                fontSize,
+                instance.screenWidth,
+                instance.screenHeight,
+              ),
+          builder: (context, child) {
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider.value(value: widget.authCubit),
+                BlocProvider(
+                  create: (context) => ProductCubit(productRepository),
+                ),
+                BlocProvider(
+                  create: (context) => StockReportCubit(productRepository),
+                ),
+                BlocProvider(
+                  create: (context) =>
+                      OrderCubit(orderRepository, productRepository),
+                ),
+                BlocProvider(
+                  create: (context) => CategoryCubit(CategoryRepository()),
+                ),
+                BlocProvider(
+                  create: (context) => SalesReportCubit(orderRepository),
+                ),
+              ],
+              child: MaterialApp.router(
+                title: 'Flutter POS',
+                debugShowCheckedModeBanner: false,
+                theme: AppTheme.lightTheme(context),
+                routerConfig: _router,
+              ),
+            );
+          },
         );
       },
     );

@@ -9,6 +9,7 @@ import 'package:pos/core/helper/currency_helper.dart';
 import 'package:pos/core/helper/file_helper.dart';
 import 'package:pos/core/util/modern_dialog.dart';
 import 'package:pos/core/util/responsive_layout.dart';
+import 'package:pos/core/widgets/app_app_bar.dart';
 import 'package:pos/core/widgets/shimmer_loading.dart';
 import 'package:pos/features/product/data/model/product_model.dart';
 import '../cubit/product_cubit.dart';
@@ -37,76 +38,71 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final useCompactFab = isLandscape && !isTablet;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Dashboard')),
-      drawer: ResponsiveLayout.useRail(context)
-          ? _buildPremiumDrawer(context)
-          : null,
+      appBar: AppAppBar(title: const Text('Dashboard')),
       body: Column(
         children: [
           _buildHeaderSection(),
           Expanded(
-            child: BlocBuilder<ProductCubit, ProductState>(
-              builder: (context, state) {
-                if (state is ProductLoading) {
-                  final crossAxisCount = ResponsiveLayout.gridColumns(
-                    context,
-                    portrait: 2,
-                    landscape: 3,
-                    wide: 4,
-                    desktop: 5,
-                  );
-                  return ProductGridShimmer(
-                    crossAxisCount: crossAxisCount,
-                    childAspectRatio: 0.72,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 20.w,
-                      vertical: 10.h,
-                    ),
-                  );
-                } else if (state is ProductLoaded) {
-                  if (state.products.isEmpty) {
-                    return Center(
-                      child: _buildEmptyState(
-                        _searchController.text.isNotEmpty,
-                      ),
-                    );
-                  }
-                  final crossAxisCount = ResponsiveLayout.gridColumns(
-                    context,
-                    portrait: 2,
-                    landscape: 3,
-                    wide: 4,
-                    desktop: 5,
-                  );
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // Ukuran kartu (lebar & tinggi) dihitung dari area grid yang
+                // tersisa supaya proporsional di tablet portrait/lanskap.
+                final gridPadding = EdgeInsets.symmetric(
+                  horizontal: 20.w,
+                  vertical: 10.h,
+                );
+                final grid = ResponsiveLayout.productGridMetrics(
+                  constraints.biggest,
+                  padding: gridPadding,
+                  spacing: 16.w,
+                );
+                return BlocBuilder<ProductCubit, ProductState>(
+                  builder: (context, state) {
+                    if (state is ProductLoading) {
+                      return ProductGridShimmer(
+                        crossAxisCount: grid.columns,
+                        childAspectRatio: grid.aspectRatio,
+                        padding: gridPadding,
+                      );
+                    }
+                    if (state is ProductLoaded) {
+                      if (state.products.isEmpty) {
+                        return Center(
+                          child: _buildEmptyState(
+                            _searchController.text.isNotEmpty,
+                          ),
+                        );
+                      }
 
-                  return RefreshIndicator(
-                    onRefresh: () async {
-                      await context.read<ProductCubit>().loadProducts();
-                    },
-                    color: AppColors.primary,
-                    child: GridView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 20.w,
-                        vertical: 10.h,
-                      ),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: crossAxisCount,
-                        childAspectRatio: 0.72,
-                        crossAxisSpacing: 16.w,
-                        mainAxisSpacing: 16.h,
-                      ),
-                      itemCount: state.products.length,
-                      itemBuilder: (context, index) {
-                        final product = state.products[index];
-                        return _PremiumProductCard(product: product);
-                      },
-                    ),
-                  );
-                } else if (state is ProductError) {
-                  return Center(child: Text(state.message));
-                }
-                return const SizedBox();
+                      return RefreshIndicator(
+                        onRefresh: () async {
+                          await context.read<ProductCubit>().loadProducts();
+                        },
+                        color: AppColors.primary,
+                        child: GridView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: gridPadding,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: grid.columns,
+                                childAspectRatio: grid.aspectRatio,
+                                crossAxisSpacing: 16.w,
+                                mainAxisSpacing: 16.h,
+                              ),
+                          itemCount: state.products.length,
+                          itemBuilder: (context, index) {
+                            final product = state.products[index];
+                            return _PremiumProductCard(product: product);
+                          },
+                        ),
+                      );
+                    }
+                    if (state is ProductError) {
+                      return Center(child: Text(state.message));
+                    }
+                    return const SizedBox();
+                  },
+                );
               },
             ),
           ),
@@ -266,141 +262,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
       ),
     );
   }
-
-  Widget _buildPremiumDrawer(BuildContext context) {
-    return Drawer(
-      backgroundColor: AppColors.background,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topRight: Radius.circular(32.r),
-          bottomRight: Radius.circular(32.r),
-        ),
-      ),
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          BlocBuilder<AuthCubit, AuthState>(
-            builder: (context, state) {
-              final user = state is Authenticated ? state.user : null;
-              final String name = user?.name ?? 'User';
-              final String username = user?.username != null
-                  ? '@${user!.username}'
-                  : '';
-              final String imagePath = user?.imagePath ?? '';
-
-              return Container(
-                padding: EdgeInsets.fromLTRB(24.w, 80.h, 24.w, 40.h),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.only(
-                    bottomRight: Radius.circular(40.r),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CircleAvatar(
-                      radius: 35.r,
-                      backgroundColor: Colors.white,
-                      backgroundImage: imagePath.isNotEmpty
-                          ? FileImage(File(FileHelper.getFullPath(imagePath)))
-                          : null,
-                      child: imagePath.isEmpty
-                          ? Icon(
-                              Icons.person_rounded,
-                              size: 40.r,
-                              color: AppColors.primary,
-                            )
-                          : null,
-                    ),
-                    SizedBox(height: 16.h),
-                    Text(
-                      name,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      username,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        fontSize: 14.sp,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          SizedBox(height: 20.h),
-          _DrawerItem(
-            icon: Icons.dashboard_rounded,
-            title: 'Dashboard',
-            onTap: () => Navigator.pop(context),
-            isActive: true,
-          ),
-          _DrawerItem(
-            icon: Icons.shopping_cart_rounded,
-            title: 'Transaksi (Kasir)',
-            accentColor: AppColors.success,
-            onTap: () => {Navigator.pop(context), context.go('/order')},
-          ),
-          _DrawerItem(
-            icon: Icons.receipt_long_rounded,
-            title: 'Riwayat Transaksi',
-            onTap: () => {Navigator.pop(context), context.go('/order-history')},
-          ),
-          Divider(indent: 24.w, endIndent: 24.w, height: 40.h),
-          _DrawerItem(
-            icon: Icons.category_rounded,
-            title: 'Manajemen Kategori',
-            onTap: () => {Navigator.pop(context), context.push('/categories')},
-          ),
-          _DrawerItem(
-            icon: Icons.analytics_rounded,
-            title: 'Laporan Penjualan',
-            onTap: () => {Navigator.pop(context), context.go('/sales-report')},
-          ),
-          Divider(indent: 24.w, endIndent: 24.w, height: 40.h),
-          _DrawerItem(
-            icon: Icons.person_outline_rounded,
-            title: 'Edit Profil',
-            onTap: () => {
-              Navigator.pop(context),
-              context.push('/edit-profile'),
-            },
-          ),
-          _DrawerItem(
-            icon: Icons.lock_reset_rounded,
-            title: 'Ubah Password',
-            onTap: () => {
-              Navigator.pop(context),
-              context.push('/change-password'),
-            },
-          ),
-          SizedBox(height: 20.h),
-          BlocBuilder<AuthCubit, AuthState>(
-            builder: (context, state) {
-              final isLoading = state is AuthLoading;
-              return _DrawerItem(
-                icon: Icons.logout_rounded,
-                title: 'Logout',
-                color: AppColors.error,
-                isLoading: isLoading,
-                onTap: isLoading
-                    ? () {}
-                    : () => context.read<AuthCubit>().logout(),
-              );
-            },
-          ),
-          SizedBox(height: 24.h),
-        ],
-      ),
-    );
-  }
 }
 
 class _PremiumProductCard extends StatelessWidget {
@@ -412,7 +273,7 @@ class _PremiumProductCard extends StatelessWidget {
     return GestureDetector(
       onTap: () => context.push('/detail', extra: product),
       child: Container(
-        decoration: AppStyles.glassDecoration(borderRadius: 24),
+        decoration: AppStyles.glassDecoration(borderRadius: 12.r),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -422,7 +283,7 @@ class _PremiumProductCard extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(24.r),
+                      top: Radius.circular(12.r),
                     ),
                     child: product.imagePath.isNotEmpty
                         ? Image.file(
@@ -467,7 +328,9 @@ class _PremiumProductCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.error.withValues(alpha: 0.9),
-                          borderRadius: BorderRadius.circular(8.r),
+                          borderRadius: BorderRadius.circular(
+                            AppStyles.radiusInner.r,
+                          ),
                         ),
                         child: Text(
                           'Stok Tipis',
@@ -510,7 +373,7 @@ class _PremiumProductCard extends StatelessWidget {
                     'Modal: ${CurrencyHelper.formatIdr(product.costPrice)}',
                     style: TextStyle(
                       color: AppColors.textSecondary,
-                      fontSize: 10.sp,
+                      fontSize: 12.sp,
                       fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
@@ -523,7 +386,7 @@ class _PremiumProductCard extends StatelessWidget {
                       Text(
                         'Stok: ${product.stock}',
                         style: TextStyle(
-                          fontSize: 10.sp,
+                          fontSize: 12.sp,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textSecondary,
                         ),
@@ -553,7 +416,7 @@ class _PremiumProductCard extends StatelessWidget {
           color: AppColors.textPrimary,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(AppStyles.radiusInner.r),
         ),
         onSelected: (value) {
           if (value == 'edit') {
@@ -605,66 +468,6 @@ class _PremiumProductCard extends StatelessWidget {
         context.read<ProductCubit>().deleteProduct(id);
         ToastHelper.showSuccess(context, 'Produk berhasil dihapus');
       },
-    );
-  }
-}
-
-class _DrawerItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-  final Color? color;
-  final Color? accentColor;
-  final bool isActive;
-  final bool isLoading;
-
-  const _DrawerItem({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-    this.color,
-    this.accentColor,
-    this.isActive = false,
-    this.isLoading = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final activeColor = accentColor ?? AppColors.primary;
-
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
-      child: ListTile(
-        onTap: onTap,
-        leading: Icon(
-          icon,
-          color: isActive ? activeColor : (color ?? AppColors.textSecondary),
-        ),
-        title: Text(
-          title,
-          style: TextStyle(
-            color: isActive ? activeColor : (color ?? AppColors.textPrimary),
-            fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-            fontSize: 16.sp,
-          ),
-        ),
-        trailing: isLoading
-            ? SizedBox(
-                width: 18.w,
-                height: 18.w,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.w,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    color ?? AppColors.primary,
-                  ),
-                ),
-              )
-            : null,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        tileColor: isActive ? activeColor.withValues(alpha: 0.1) : null,
-      ),
     );
   }
 }

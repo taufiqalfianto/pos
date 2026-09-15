@@ -19,6 +19,17 @@ abstract final class AppBreakpointResolver {
   static const double tabletMin = 600;
   static const double tabletLandscapeMin = 840;
 
+  /// Ukuran desain dasar (iPhone 14/15) yang dipakai ScreenUtil.
+  static const Size phoneDesignSize = Size(393, 852);
+
+  /// Batas atas skala lebar (`.w`) di tablet.
+  ///
+  /// Desain ini dibuat portaiter 393px, jadi di tablet lanskap `scaleWidth`
+  /// membengkak (1280px → 3.26x) sedangkan `scaleHeight`/`.sp` hanya ~1x.
+  /// Akibatnya padding kartu jadi raksasa sementara teks terlihat kecil.
+  /// Dengan batas ini `.w` maksimal 1.5x ukuran desain.
+  static const double maxWidthScale = 1.5;
+
   static AppBreakpoint fromWidth(double width) {
     if (width < mobileMin) return AppBreakpoint.mobileSmall;
     if (width < tabletMin) return AppBreakpoint.mobile;
@@ -26,18 +37,32 @@ abstract final class AppBreakpointResolver {
     return AppBreakpoint.tabletLandscape;
   }
 
+  /// `designSize` ScreenUtil yang menjaga `.w` tidak melebihi
+  /// [maxWidthScale]. Ponsel (<= 589px lebar efektif) tetap memakai
+  /// [phoneDesignSize] apa adanya, sehingga tata letak ponsel tidak berubah.
+  static Size designSizeFor(Size screen) {
+    return Size(
+      math.max(phoneDesignSize.width, screen.width / maxWidthScale),
+      math.max(phoneDesignSize.height, screen.height / maxWidthScale),
+    );
+  }
+
   /// Faktor skala font global per breakpoint & orientasi, supaya semua teks
-  /// (`.sp`, tema, tombol, drawer) bergeser bersama-sama saat layar berubah:
-  /// mobile portrait 1.0 · mobile landscape 0.9 · tablet portrait 1.0 ·
-  /// tablet landscape / wide 0.95 · desktop 1.0.
+  /// (`.sp`, tema, tombol, NavigationBar) bergerak bersama-sama saat layar
+  /// berubah: ponsel portrait 1.0 · ponsel landscape 0.9 · tablet 1.1 ·
+  /// layar lebar/desktop 1.15.
   static double fontScaleFor(double width, double height) {
-    if (width >= 1200) return 1.0;
-    if (width >= tabletLandscapeMin) return 0.95;
+    if (width >= 1200) return 1.15;
+    if (width >= tabletLandscapeMin) return 1.1;
     // Layar lebar & pendek (lebar > tinggi) = ponsel landscape, kecilkan font.
-    if (width >= tabletMin && width <= height) return 1.0;
+    if (width >= tabletMin && width <= height) return 1.1;
     if (width > height) return 0.9;
     return 1.0;
   }
+
+  /// `fontSizeResolver` ScreenUtil: satu-satunya jalur skala `.sp`.
+  static double scaledFontSize(num fontSize, double width, double height) =>
+      fontSize * fontScaleFor(width, height);
 }
 
 class ResponsiveCondition {
@@ -74,9 +99,6 @@ class ResponsiveCondition {
   bool get isTabletLandscape =>
       width >= AppBreakpointResolver.tabletLandscapeMin;
 
-  /// NavigationRail dipakai mulai 840px.
-  bool get useRail => isTabletLandscape;
-
   bool get isDesktop => width >= 1200;
 
   // --- Alias kompatibilitas ---
@@ -100,12 +122,6 @@ class ResponsiveLayout {
 
   static bool isDesktop(BuildContext context) {
     return MediaQuery.of(context).size.width >= 1200;
-  }
-
-  /// Tablet landscape (>= 840px) — NavigationRail.
-  static bool useRail(BuildContext context) {
-    return MediaQuery.of(context).size.width >=
-        AppBreakpointResolver.tabletLandscapeMin;
   }
 
   static AppBreakpoint breakpointOf(BuildContext context) {
@@ -297,6 +313,57 @@ class ResponsiveLayout {
       return math.min(screenWidth, tabletMaxWidth);
     }
     return math.min(screenWidth, maxWidth);
+  }
+
+  /// Jumlah kolom + rasio lebar:tinggi item grid produk untuk [area]
+  /// (`area` sudah termasuk [padding] grid).
+  ///
+  /// Lebar kartu dijaga di [minTileWidth]..[maxTileWidth] dan bentuknya
+  /// mengikuti orientasi area (portrait 0.72, lanskap 0.95) supaya kartu tetap
+  /// simetris di tablet portrait maupun lanskap — bukan raksasa memanjang.
+  ///
+  /// ponytail: target lebar 175 (portrait) / 210 (lanskap) hard-coded; jadikan
+  /// parameter kalau nanti ada grid produk lain yang butuh ukuran berbeda.
+  static ({int columns, double aspectRatio}) productGridMetrics(
+    Size area, {
+    EdgeInsets padding = EdgeInsets.zero,
+    double spacing = 16,
+    double minTileWidth = 150,
+    double maxTileWidth = 240,
+    double minTileHeight = 150,
+  }) {
+    final usableWidth = math.max(1.0, area.width - padding.horizontal);
+    final usableHeight = math.max(1.0, area.height - padding.vertical);
+    final isWide = area.width > area.height;
+    final targetWidth = isWide ? 210.0 : 175.0;
+    final columnCeiling = math.max(
+      1,
+      ((usableWidth + spacing) / (minTileWidth + spacing)).floor(),
+    );
+    final columnFloor = math.min(
+      columnCeiling,
+      math.max(1, ((usableWidth + spacing) / (maxTileWidth + spacing)).ceil()),
+    );
+    final columns = ((usableWidth + spacing) / (targetWidth + spacing))
+        .round()
+        .clamp(columnFloor, columnCeiling);
+    final tileWidth = (usableWidth - spacing * (columns - 1)) / columns;
+    final preferredHeight = tileWidth / (isWide ? 0.95 : 0.72);
+    // Area pendek (lanskap ponsel / keyboard terbuka) memangkas tinggi kartu,
+    // tapi tinggi kartu tidak pernah melebihi bentuk idealnya.
+    final rows = usableHeight.isFinite
+        ? math.max(1, (usableHeight / (preferredHeight + spacing)).floor())
+        : 1;
+    final tileHeight = usableHeight.isFinite
+        ? math.min(
+            preferredHeight,
+            math.max(
+              minTileHeight,
+              (usableHeight - spacing * (rows - 1)) / rows,
+            ),
+          )
+        : preferredHeight;
+    return (columns: columns, aspectRatio: tileWidth / tileHeight);
   }
 
   static int gridColumns(

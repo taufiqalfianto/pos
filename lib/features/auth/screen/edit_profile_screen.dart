@@ -8,7 +8,8 @@ import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/helper/file_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
-import 'package:pos/core/widgets/loading_button_child.dart';
+import 'package:pos/core/widgets/app_app_bar.dart';
+import 'package:pos/core/widgets/primary_button.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -101,7 +102,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final isTablet = ResponsiveLayout.isTablet(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Profil')),
+      appBar: AppAppBar(title: const Text('Edit Profil')),
       body: BlocListener<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
@@ -230,26 +231,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     : null,
                               ),
                               SizedBox(height: isTablet ? 28.h : 40.h),
-                              SizedBox(
-                                height: isTablet ? 52.h : 60.h,
-                                child: FilledButton(
-                                  onPressed: _isSaving ? null : _saveProfile,
-                                  style: FilledButton.styleFrom(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                        isTablet ? 16.r : 20.r,
-                                      ),
-                                    ),
-                                  ),
-                                  child: LoadingButtonChild(
-                                    isLoading: _isSaving,
-                                    label: 'SIMPAN PERUBAHAN',
-                                    textStyle: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1,
-                                    ),
-                                  ),
-                                ),
+                              PrimaryButton(
+                                isLoading: _isSaving,
+                                label: 'SIMPAN PERUBAHAN',
+                                onPressed: _isSaving ? null : _saveProfile,
                               ),
                             ],
                           ),

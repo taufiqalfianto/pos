@@ -203,7 +203,7 @@ class ListShimmer extends StatelessWidget {
         separatorBuilder: (context, index) => SizedBox(height: 12.h),
         itemBuilder: (context, index) => Container(
           height: itemHeight.h,
-          padding: EdgeInsets.all(16.w),
+          padding: EdgeInsets.all(16.h),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20.r),
@@ -212,7 +212,7 @@ class ListShimmer extends StatelessWidget {
           child: Row(
             children: [
               if (withAvatar) ...[
-                ShimmerBlock(width: 42.w, height: 42.w, borderRadius: 12),
+                ShimmerBlock(width: 42.h, height: 42.h, borderRadius: 12),
                 SizedBox(width: 14.w),
               ],
               Expanded(
@@ -300,15 +300,20 @@ class _StatCardSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ponytail: padding/ikon kartu pakai `.h` (skala tinggi), bukan `.w`.
+    // Tinggi sel grid = lebar sel / aspectRatio, sedangkan `.w` ikut lebar
+    // layar → 5 kolom di tablet/desktop bikin konten lebih tinggi dari sel
+    // (RenderFlex overflow 60px @1280x800). Ubah ke `.w` lagi hanya kalau
+    // jumlah kolom grid tidak lagi naik di layar lebar.
     return Container(
-      padding: EdgeInsets.all(20.w),
+      padding: EdgeInsets.all(20.h),
       decoration: AppStyles.glassDecoration(borderRadius: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          ShimmerBlock(width: 40.w, height: 40.w, borderRadius: 12),
-          ShimmerBlock(width: 92.w, height: 12.h),
+          ShimmerBlock(width: 40.h, height: 40.h, borderRadius: 12),
+          ShimmerBlock(width: 92.h, height: 12.h),
           ShimmerBlock(width: double.infinity, height: 18.h),
         ],
       ),

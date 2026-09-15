@@ -5,7 +5,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/util/responsive_layout.dart';
-import 'package:pos/core/widgets/loading_button_child.dart';
+import 'package:pos/core/widgets/app_app_bar.dart';
+import 'package:pos/core/widgets/primary_button.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
 
@@ -48,7 +49,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Keamanan')),
+      appBar: AppAppBar(title: const Text('Keamanan')),
       body: BlocListener<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
@@ -168,29 +169,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                 },
                               ),
                               SizedBox(height: 48.h),
-                              SizedBox(
-                                height: ResponsiveLayout.adaptiveValue(
-                                  context,
-                                  portrait: 60,
-                                  landscape: 52,
-                                  tablet: 52,
-                                ).h,
-                                child: FilledButton(
-                                  onPressed: _isSaving ? null : _savePassword,
-                                  style: FilledButton.styleFrom(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20.r),
-                                    ),
-                                  ),
-                                  child: LoadingButtonChild(
-                                    isLoading: _isSaving,
-                                    label: 'UPDATE PASSWORD',
-                                    textStyle: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1,
-                                    ),
-                                  ),
-                                ),
+                              PrimaryButton(
+                                isLoading: _isSaving,
+                                label: 'UPDATE PASSWORD',
+                                onPressed: _isSaving ? null : _savePassword,
                               ),
                             ],
                           ),

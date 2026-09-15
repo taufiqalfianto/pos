@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/util/responsive_layout.dart';
+import 'package:pos/core/widgets/app_app_bar.dart';
+import 'package:pos/core/widgets/primary_button.dart';
 import 'package:pos/core/widgets/shimmer_loading.dart';
 import '../cubit/stock_report_cubit.dart';
 import '../data/model/product_model.dart';
@@ -28,7 +30,7 @@ class _StockReportScreenState extends State<StockReportScreen> {
   Widget build(BuildContext context) {
     final isLandscape = context.isLandscape;
     return Scaffold(
-      appBar: AppBar(title: const Text('Laporan Stok')),
+      appBar: AppAppBar(title: const Text('Laporan Stok')),
       body: Column(
         children: [
           _buildSummaryCard(),
@@ -60,27 +62,11 @@ class _StockReportScreenState extends State<StockReportScreen> {
             landscape: 32,
             vertical: isLandscape ? 16 : 24,
           ),
-          child: SizedBox(
-            height: ResponsiveLayout.adaptiveValue(
-              context,
-              portrait: 60,
-              landscape: 52,
-              tablet: 52,
-            ).h,
-            child: FilledButton.icon(
-              onPressed: () =>
-                  context.push('/add-stock-report', extra: widget.product),
-              icon: const Icon(Icons.add_chart_rounded),
-              label: const Text(
-                'INPUT STOK MANUAL',
-                style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1),
-              ),
-              style: FilledButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-              ),
-            ),
+          child: PrimaryButton(
+            icon: Icons.add_chart_rounded,
+            label: 'INPUT STOK MANUAL',
+            onPressed: () =>
+                context.push('/add-stock-report', extra: widget.product),
           ),
         ),
       ),
@@ -92,16 +78,14 @@ class _StockReportScreenState extends State<StockReportScreen> {
     return Container(
       margin: EdgeInsets.all(isLandscape ? 16.w : 24.w),
       padding: EdgeInsets.all(isLandscape ? 14.w : 24.w),
-      decoration: AppStyles.glassDecoration(
-        borderRadius: isLandscape ? 24 : 32,
-      ),
+      decoration: AppStyles.glassDecoration(),
       child: Row(
         children: [
           Container(
             padding: EdgeInsets.all(isLandscape ? 10.w : 16.w),
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(isLandscape ? 14.r : 20.r),
+              borderRadius: BorderRadius.circular(AppStyles.radiusInner.r),
             ),
             child: Icon(
               Icons.inventory_2_rounded,
@@ -196,14 +180,8 @@ class _StockReportScreenState extends State<StockReportScreen> {
                           : AppColors.error;
 
                       return Container(
-                        padding: EdgeInsets.all(16.w),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20.r),
-                          border: Border.all(
-                            color: Colors.black.withValues(alpha: 0.05),
-                          ),
-                        ),
+                        padding: EdgeInsets.all(20.w),
+                        decoration: AppStyles.cardDecoration(),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [

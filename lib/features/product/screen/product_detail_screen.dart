@@ -19,7 +19,6 @@ class ProductDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isLandscape = context.isLandscape;
-    final isTablet = ResponsiveLayout.isTablet(context);
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -38,7 +37,7 @@ class ProductDetailScreen extends StatelessWidget {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(isTablet ? 18.r : 20.r),
+          borderRadius: BorderRadius.circular(AppStyles.radiusCard.r),
         ),
       ),
     );
@@ -52,7 +51,8 @@ class ProductDetailScreen extends StatelessWidget {
           : (isTablet ? 300.h : 350.h),
       pinned: true,
       stretch: true,
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.primary,
+      foregroundColor: Colors.white,
       iconTheme: const IconThemeData(
         color: Colors.white,
       ), // Overriding for header
@@ -259,12 +259,6 @@ class ProductDetailScreen extends StatelessWidget {
                       padding: EdgeInsets.symmetric(
                         vertical: isTablet ? 14.h : 16.h,
                       ),
-                      side: const BorderSide(color: AppColors.primary),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          isTablet ? 14.r : 16.r,
-                        ),
-                      ),
                     ),
                   ),
                 ),
@@ -291,11 +285,7 @@ class ProductDetailScreen extends StatelessWidget {
     final isTablet = ResponsiveLayout.isTablet(context);
     return Container(
       padding: EdgeInsets.all(isTablet ? 14.w : 16.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(isTablet ? 18.r : 20.r),
-        boxShadow: AppStyles.premiumShadow,
-      ),
+      decoration: AppStyles.cardDecoration(border: false, shadow: true),
       child: Row(
         children: [
           Container(

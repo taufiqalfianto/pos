@@ -67,7 +67,11 @@ class AuthCubit extends Cubit<AuthState> {
         );
         emit(Authenticated(currentState.user)); // Keep authenticated
       } catch (e, stackTrace) {
-        AppLogger.error('Ganti password gagal', error: e, stackTrace: stackTrace);
+        AppLogger.error(
+          'Ganti password gagal',
+          error: e,
+          stackTrace: stackTrace,
+        );
         emit(AuthError(e.toString()));
         emit(Authenticated(currentState.user)); // Restore state after error
       }
