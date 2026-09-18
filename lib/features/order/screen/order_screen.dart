@@ -174,7 +174,7 @@ class _OrderScreenState extends State<OrderScreen> {
 
     return Container(
       decoration: AppStyles.glassDecoration(
-        borderRadius: compact ? 12 : (isLandscape || isTablet ? 24 : 32),
+        borderRadius: compact ? 12 : (isLandscape || isTablet ? 0 : 32),
       ),
       clipBehavior: Clip.antiAlias,
       child: BlocBuilder<OrderCubit, OrderState>(
@@ -188,6 +188,8 @@ class _OrderScreenState extends State<OrderScreen> {
           // ikut terscroll, jadi tombol BAYAR selalu terlihat.
           return Column(
             children: [
+              _buildCartHeader(context, compact: compact),
+              SizedBox(height: 12.h),
               Expanded(
                 child: Scrollbar(
                   controller: _cartScrollController,
@@ -198,7 +200,6 @@ class _OrderScreenState extends State<OrderScreen> {
                     controller: _cartScrollController,
                     padding: EdgeInsets.zero,
                     children: [
-                      _buildCartHeader(context, compact: compact),
                       if (items.isEmpty)
                         _buildEmptyCartPlaceholder(context, compact)
                       else
@@ -364,7 +365,7 @@ class _OrderScreenState extends State<OrderScreen> {
                         SizedBox(height: 4.h),
                         FittedBox(
                           fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
+                          alignment: Alignment.centerLeft, 
                           child: Text(
                             CurrencyHelper.formatIdr(total),
                             style: TextStyle(
@@ -380,6 +381,7 @@ class _OrderScreenState extends State<OrderScreen> {
                     )
                   else
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
                           child: Text(

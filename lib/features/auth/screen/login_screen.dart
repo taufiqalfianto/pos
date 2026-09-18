@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:pos/core/widgets/app_logo.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -78,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Center(
       child: SingleChildScrollView(
-        padding: ResponsiveLayout.pagePadding(context),
+        padding: EdgeInsets.all(14.w),
         child: _buildAuthCard(
           context,
           cardPadding: EdgeInsets.all(isTablet ? 24.w : 28.w),
@@ -94,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final isTablet = ResponsiveLayout.isTablet(context);
     return SafeArea(
       child: SingleChildScrollView(
-        padding: EdgeInsets.all(isTablet ? 16.w : 20.w),
+        padding: EdgeInsets.all(isTablet ? 16.w : 14.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -150,11 +151,11 @@ class _LoginScreenState extends State<LoginScreen> {
     final responsive = ResponsiveLayout.of(context);
     final isTablet = ResponsiveLayout.isTablet(context);
     return Container(
-      constraints: BoxConstraints(maxWidth: isTablet ? 360.w : 300.w),
+      constraints: BoxConstraints(maxWidth: isTablet ? 360.w : 400.w),
       decoration: AppStyles.glassDecoration(
         borderRadius: responsive.isLandscape
             ? (isTablet ? 30 : 28)
-            : (isTablet ? 34 : 32),
+            : (isTablet ? 34 : 12),
         blur: 20,
       ),
       padding: cardPadding,
@@ -180,7 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 color: AppColors.textSecondary,
                 fontSize: responsive.isLandscape
                     ? (isTablet ? 10.sp : 8.sp)
-                    : (isTablet ? 12.sp : 14.sp),
+                    : (isTablet ? 14.sp : 16.sp),
                 height: 1.4,
               ),
             ),
@@ -236,14 +237,33 @@ class _LoginScreenState extends State<LoginScreen> {
             BlocBuilder<AuthCubit, AuthState>(
               builder: (context, state) {
                 final isLoading = state is AuthLoading;
-                return TextButton(
-                  onPressed: isLoading ? null : () => context.go('/register'),
-                  child: const Text(
-                    'Belum punya akun? Daftar gratis',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
+                return RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'Belum punya akun? ',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: responsive.isLandscape
+                              ? (isTablet ? 10.sp : 8.sp)
+                              : (isTablet ? 14.sp : 16.sp),
+                        ),
+                      ),
+                      TextSpan(
+                        text: 'Daftar gratis',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: responsive.isLandscape
+                              ? (isTablet ? 10.sp : 8.sp)
+                              : (isTablet ? 14.sp : 16.sp),
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            if (!isLoading) context.go('/register');
+                          },
+                      ),
+                    ],
                   ),
                 );
               },

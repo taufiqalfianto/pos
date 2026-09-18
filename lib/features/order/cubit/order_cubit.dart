@@ -8,6 +8,7 @@ import '../repository/order_repository.dart';
 import 'order_state.dart';
 
 class OrderCubit extends Cubit<OrderState> {
+  static const _logTag = 'OrderCubit';
   final OrderRepository _orderRepository;
   final ProductRepository _productRepository;
 
@@ -19,6 +20,7 @@ class OrderCubit extends Cubit<OrderState> {
     : super(OrderInitial());
 
   void addItem(ProductModel product) {
+    AppLogger.info('Tambah item cart: product_id=${product.id}', tag: _logTag);
     final existingIndex = _cartItems.indexWhere(
       (item) => item.productId == product.id,
     );
@@ -26,6 +28,10 @@ class OrderCubit extends Cubit<OrderState> {
     if (existingIndex >= 0) {
       final item = _cartItems[existingIndex];
       if (item.quantity + 1 > product.stock) {
+        AppLogger.warning(
+          'Tambah item cart ditolak: stok kurang, product_id=${product.id}',
+          tag: _logTag,
+        );
         emit(const OrderError('Stok tidak mencukupi'));
         emit(OrderCartUpdated(List.from(_cartItems), _calculateTotal()));
         return;
@@ -40,6 +46,10 @@ class OrderCubit extends Cubit<OrderState> {
       );
     } else {
       if (product.stock < 1) {
+        AppLogger.warning(
+          'Tambah item cart ditolak: stok habis, product_id=${product.id}',
+          tag: _logTag,
+        );
         emit(const OrderError('Stok habis'));
         emit(OrderCartUpdated(List.from(_cartItems), _calculateTotal()));
         return;
@@ -56,12 +66,26 @@ class OrderCubit extends Cubit<OrderState> {
       );
     }
 
+    AppLogger.debug(
+      'Cart updated setelah tambah item: item_count=${_cartItems.length}, total=${_calculateTotal()}',
+      tag: _logTag,
+    );
     emit(OrderCartUpdated(List.from(_cartItems), _calculateTotal()));
   }
 
   void removeItem(String productId) {
+    AppLogger.info(
+      'Kurangi/hapus item cart: product_id=$productId',
+      tag: _logTag,
+    );
     final index = _cartItems.indexWhere((item) => item.productId == productId);
-    if (index < 0) return;
+    if (index < 0) {
+      AppLogger.warning(
+        'Item cart tidak ditemukan: product_id=$productId',
+        tag: _logTag,
+      );
+      return;
+    }
 
     if (_cartItems[index].quantity > 1) {
       final item = _cartItems[index];
@@ -75,15 +99,33 @@ class OrderCubit extends Cubit<OrderState> {
     } else {
       _cartItems.removeAt(index);
     }
+    AppLogger.debug(
+      'Cart updated setelah remove item: item_count=${_cartItems.length}, total=${_calculateTotal()}',
+      tag: _logTag,
+    );
     emit(OrderCartUpdated(List.from(_cartItems), _calculateTotal()));
   }
 
   Future<void> updateQuantity(String productId, int quantity) async {
+    AppLogger.info(
+      'Update quantity cart dimulai: product_id=$productId, quantity=$quantity',
+      tag: _logTag,
+    );
     final index = _cartItems.indexWhere((item) => item.productId == productId);
-    if (index < 0) return;
+    if (index < 0) {
+      AppLogger.warning(
+        'Update quantity gagal: item tidak ditemukan',
+        tag: _logTag,
+      );
+      return;
+    }
 
     if (quantity <= 0) {
       _cartItems.removeAt(index);
+      AppLogger.info(
+        'Item cart dihapus lewat quantity <= 0: product_id=$productId',
+        tag: _logTag,
+      );
       emit(OrderCartUpdated(List.from(_cartItems), _calculateTotal()));
       return;
     }
@@ -92,6 +134,10 @@ class OrderCubit extends Cubit<OrderState> {
       try {
         final product = await _productRepository.getProductById(productId);
         if (product != null && quantity > product.stock) {
+          AppLogger.warning(
+            'Update quantity ditolak: stok kurang, product_id=$productId, requested=$quantity, stock=${product.stock}',
+            tag: _logTag,
+          );
           emit(const OrderError('Stok tidak mencukupi'));
           emit(OrderCartUpdated(List.from(_cartItems), _calculateTotal()));
           return;
@@ -111,10 +157,18 @@ class OrderCubit extends Cubit<OrderState> {
       costPrice: item.costPrice,
       quantity: quantity,
     );
+    AppLogger.debug(
+      'Cart updated setelah update quantity: item_count=${_cartItems.length}, total=${_calculateTotal()}',
+      tag: _logTag,
+    );
     emit(OrderCartUpdated(List.from(_cartItems), _calculateTotal()));
   }
 
   void clearCart() {
+    AppLogger.info(
+      'Cart dikosongkan: previous_item_count=${_cartItems.length}',
+      tag: _logTag,
+    );
     _cartItems = [];
     emit(OrderInitial());
   }
@@ -124,9 +178,16 @@ class OrderCubit extends Cubit<OrderState> {
   }
 
   Future<void> checkout({required String paymentMethod}) async {
-    if (_cartItems.isEmpty) return;
+    if (_cartItems.isEmpty) {
+      AppLogger.warning('Checkout dilewati: cart kosong', tag: _logTag);
+      return;
+    }
 
     try {
+      AppLogger.info(
+        'Checkout dimulai: item_count=${_cartItems.length}, total=${_calculateTotal()}, payment=$paymentMethod',
+        tag: _logTag,
+      );
       emit(OrderLoading());
 
       final now = DateTime.now();
@@ -145,6 +206,7 @@ class OrderCubit extends Cubit<OrderState> {
       _productRepository.notifyListeners();
 
       _cartItems = [];
+      AppLogger.info('Checkout berhasil: order_id=${order.id}', tag: _logTag);
       emit(OrderSuccess(order));
     } catch (e, stackTrace) {
       AppLogger.error('Checkout gagal', error: e, stackTrace: stackTrace);
@@ -159,8 +221,13 @@ class OrderCubit extends Cubit<OrderState> {
 
   Future<void> fetchOrderHistory() async {
     try {
+      AppLogger.info('Load riwayat order dimulai', tag: _logTag);
       emit(OrderLoading());
       final orders = await _orderRepository.getOrders();
+      AppLogger.info(
+        'Load riwayat order berhasil: count=${orders.length}',
+        tag: _logTag,
+      );
       emit(OrderHistoryLoaded(orders));
     } catch (e, stackTrace) {
       AppLogger.error(

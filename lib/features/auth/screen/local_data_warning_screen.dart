@@ -161,7 +161,7 @@ class _LocalDataWarningScreenState extends State<LocalDataWarningScreen> {
                         icon: Icons.backup_outlined,
                         title: 'Backup tetap disarankan',
                         description:
-                            'Sebelum update besar atau pindah perangkat, buat salinan data secara manual sampai fitur sinkron server tersedia.',
+                            'Sebelum update besar atau pindah perangkat, gunakan menu Backup & Restore untuk menyimpan salinan data.',
                       ),
                       SizedBox(height: 12.h),
                       Text(

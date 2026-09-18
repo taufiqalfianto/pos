@@ -125,6 +125,14 @@ class MainShell extends StatelessWidget {
                   context.push('/change-password');
                 },
               ),
+              _MoreMenuItem(
+                icon: Icons.backup_rounded,
+                title: 'Backup & Restore',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  context.push('/backup-restore');
+                },
+              ),
               BlocBuilder<AuthCubit, AuthState>(
                 builder: (context, state) {
                   final isLoading = state is AuthLoading;

@@ -5,19 +5,23 @@ import '../repository/auth_repository.dart';
 import 'auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
+  static const _logTag = 'AuthCubit';
   final AuthRepository _authRepository;
 
   AuthCubit(this._authRepository) : super(AuthInitial());
 
   Future<void> checkAuth() async {
+    AppLogger.info('Check auth dimulai', tag: _logTag);
     emit(AuthLoading());
     // Give native channels a moment to stabilize
     await Future.delayed(const Duration(milliseconds: 300));
     try {
       final user = await _authRepository.getCurrentUser();
       if (user != null) {
+        AppLogger.info('Check auth berhasil: authenticated', tag: _logTag);
         emit(Authenticated(user));
       } else {
+        AppLogger.info('Check auth selesai: unauthenticated', tag: _logTag);
         emit(Unauthenticated());
       }
     } catch (e, stackTrace) {
@@ -29,12 +33,15 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> login(String username, String password) async {
+    AppLogger.info('Login action dimulai', tag: _logTag);
     emit(AuthLoading());
     try {
       final user = await _authRepository.login(username, password);
       if (user != null) {
+        AppLogger.info('Login action berhasil', tag: _logTag);
         emit(Authenticated(user));
       } else {
+        AppLogger.warning('Login action gagal: kredensial salah', tag: _logTag);
         emit(const AuthError('Username atau password salah'));
       }
     } catch (e, stackTrace) {
@@ -44,10 +51,15 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> register(UserModel user) async {
+    AppLogger.info('Register action dimulai: user_id=${user.id}', tag: _logTag);
     emit(AuthLoading());
     try {
       await _authRepository.register(user);
       await _authRepository.saveSession(user.id); // Persist session
+      AppLogger.info(
+        'Register action berhasil: user_id=${user.id}',
+        tag: _logTag,
+      );
       emit(Authenticated(user)); // Auto login after register for UX
     } catch (e, stackTrace) {
       AppLogger.error('Register gagal', error: e, stackTrace: stackTrace);
@@ -58,12 +70,20 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> changePassword(String oldPassword, String newPassword) async {
     final currentState = state;
     if (currentState is Authenticated) {
+      AppLogger.info(
+        'Change password action dimulai: user_id=${currentState.user.id}',
+        tag: _logTag,
+      );
       emit(AuthLoading());
       try {
         await _authRepository.changePassword(
           currentState.user.id,
           oldPassword,
           newPassword,
+        );
+        AppLogger.info(
+          'Change password action berhasil: user_id=${currentState.user.id}',
+          tag: _logTag,
         );
         emit(Authenticated(currentState.user)); // Keep authenticated
       } catch (e, stackTrace) {
@@ -79,9 +99,17 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> updateProfile(UserModel user) async {
+    AppLogger.info(
+      'Update profile action dimulai: user_id=${user.id}',
+      tag: _logTag,
+    );
     emit(AuthLoading());
     try {
       await _authRepository.updateProfile(user);
+      AppLogger.info(
+        'Update profile action berhasil: user_id=${user.id}',
+        tag: _logTag,
+      );
       emit(Authenticated(user)); // Update with new user data
     } catch (e, stackTrace) {
       AppLogger.error('Update profil gagal', error: e, stackTrace: stackTrace);
@@ -90,9 +118,11 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> logout() async {
+    AppLogger.info('Logout action dimulai', tag: _logTag);
     emit(AuthLoading());
     try {
       await _authRepository.logout();
+      AppLogger.info('Logout action berhasil', tag: _logTag);
       emit(Unauthenticated());
     } catch (e, stackTrace) {
       AppLogger.error('Logout gagal', error: e, stackTrace: stackTrace);

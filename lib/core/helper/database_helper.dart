@@ -6,12 +6,22 @@ import 'package:path/path.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
+  static const int databaseVersion = 12;
+  static const List<String> backupTableNames = [
+    'users',
+    'categories',
+    'products',
+    'orders',
+    'order_items',
+    'stock_reports',
+  ];
   static Database? _database;
 
   DatabaseHelper._init();
 
   Future<Database> get database async {
     if (_database != null) return _database!;
+    AppLogger.info('Membuka database lokal', tag: 'Database');
     _database = await _initDB('pos_system.db');
     return _database!;
   }
@@ -19,17 +29,22 @@ class DatabaseHelper {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
+    AppLogger.debug('Init database path=$path', tag: 'Database');
     await _backupDatabaseBeforeOpen(path);
 
     return await openDatabase(
       path,
-      version: 12,
+      version: databaseVersion,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
   }
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    AppLogger.info(
+      'Upgrade database dimulai: old_version=$oldVersion, new_version=$newVersion',
+      tag: 'Database',
+    );
     if (oldVersion < 2) {
       await _createUsersTable(db);
     }
@@ -143,6 +158,10 @@ class DatabaseHelper {
       );
     }
     await _ensureCurrentSchema(db);
+    AppLogger.info(
+      'Upgrade database selesai: old_version=$oldVersion, new_version=$newVersion',
+      tag: 'Database',
+    );
   }
 
   Future<void> _backupDatabaseBeforeOpen(String path) async {
@@ -256,6 +275,10 @@ class DatabaseHelper {
   }
 
   Future _createDB(Database db, int version) async {
+    AppLogger.info(
+      'Create database schema dimulai: version=$version',
+      tag: 'Database',
+    );
     // Table: Categories
     await _createCategoriesTable(db);
 
@@ -279,6 +302,10 @@ class DatabaseHelper {
       'id': 'general',
       'name': 'Umum',
     }, conflictAlgorithm: ConflictAlgorithm.ignore);
+    AppLogger.info(
+      'Create database schema selesai: version=$version',
+      tag: 'Database',
+    );
   }
 
   Future _createIndexes(Database db) async {
@@ -402,7 +429,64 @@ CREATE TABLE IF NOT EXISTS categories (
   }
 
   Future<void> close() async {
-    final db = await instance.database;
-    db.close();
+    final db = _database;
+    if (db != null) {
+      await db.close();
+      _database = null;
+      AppLogger.info('Database lokal ditutup', tag: 'Database');
+    }
+  }
+
+  Future<Map<String, List<Map<String, dynamic>>>> exportTables() async {
+    AppLogger.info('Export tabel database dimulai', tag: 'Database');
+    final db = await database;
+    final data = <String, List<Map<String, dynamic>>>{};
+
+    for (final tableName in backupTableNames) {
+      data[tableName] = await db.query(tableName);
+    }
+
+    AppLogger.info(
+      'Export tabel database selesai: ${data.map((key, value) => MapEntry(key, value.length))}',
+      tag: 'Database',
+    );
+    return data;
+  }
+
+  Future<void> replaceTables(
+    Map<String, List<Map<String, dynamic>>> tables,
+  ) async {
+    AppLogger.info(
+      'Replace tabel database dimulai: ${tables.map((key, value) => MapEntry(key, value.length))}',
+      tag: 'Database',
+    );
+    final db = await database;
+    await _ensureCurrentSchema(db);
+
+    await db.transaction((txn) async {
+      await txn.delete('stock_reports');
+      await txn.delete('order_items');
+      await txn.delete('orders');
+      await txn.delete('products');
+      await txn.delete('categories');
+      await txn.delete('users');
+
+      for (final tableName in backupTableNames) {
+        final rows = tables[tableName] ?? const <Map<String, dynamic>>[];
+        for (final row in rows) {
+          await txn.insert(
+            tableName,
+            row,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+      }
+
+      await txn.insert('categories', {
+        'id': 'general',
+        'name': 'Umum',
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+    });
+    AppLogger.info('Replace tabel database selesai', tag: 'Database');
   }
 }

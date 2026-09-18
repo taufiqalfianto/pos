@@ -5,6 +5,8 @@ import 'package:pos/features/product/data/model/product_model.dart';
 import 'package:pos/features/product/repository/product_repository.dart';
 
 class FakeProductRepository extends ProductRepository {
+  DateTime? lastSyncAt;
+
   @override
   Stream<void> get productUpdates => StreamController<void>().stream;
 
@@ -22,7 +24,13 @@ class FakeProductRepository extends ProductRepository {
   }
 
   @override
-  Future<void> syncPendingData() async {}
+  Future<DateTime> createBackupSync() async {
+    lastSyncAt = DateTime(2026, 9, 18, 10, 30);
+    return lastSyncAt!;
+  }
+
+  @override
+  Future<DateTime?> getLastSyncAt() async => lastSyncAt;
 }
 
 void main() {

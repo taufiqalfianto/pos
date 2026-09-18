@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:pos/core/widgets/app_logo.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -85,7 +86,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     return Center(
       child: SingleChildScrollView(
-        padding: EdgeInsets.all(24.w),
+        padding: EdgeInsets.all(14.w),
         child: _buildAuthCard(
           context,
           cardPadding: EdgeInsets.all(isTablet ? 28.w : 32.w),
@@ -122,12 +123,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           SizedBox(height: isTablet ? 10.h : 12.h),
           Text(
             'Landscape memberi ruang lebih lega untuk mengisi data registrasi dengan nyaman.',
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.9),
               fontSize: responsive.isLandscape
                   ? (isTablet ? 9.sp : 8.sp)
                   : (isTablet ? 12.sp : 16.sp),
-              height: 1.5,
             ),
           ),
         ],
@@ -146,7 +147,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Container(
       constraints: BoxConstraints(maxWidth: isTablet ? 440 : 400),
       decoration: AppStyles.glassDecoration(
-        borderRadius: isTablet ? 30 : 32,
+        borderRadius: isTablet ? 30 : 12,
         blur: 20,
       ),
       padding: cardPadding,
@@ -168,10 +169,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             Text(
               'Daftar akun baru untuk mulai menggunakan POS',
-              style: AppStyles.subtitleStyle.copyWith(
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textSecondary,
                 fontSize: responsive.isLandscape
-                    ? (isTablet ? 9.sp : 8.sp)
-                    : (isTablet ? 12.sp : 16.sp),
+                    ? (isTablet ? 12.sp : 10.sp)
+                    : (isTablet ? 14.sp : 16.sp),
               ),
             ),
             SizedBox(height: isTablet ? 28.h : 40.h),
@@ -242,14 +245,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
             BlocBuilder<AuthCubit, AuthState>(
               builder: (context, state) {
                 final isLoading = state is AuthLoading;
-                return TextButton(
-                  onPressed: isLoading ? null : () => context.go('/login'),
-                  child: const Text(
-                    'Sudah punya akun? Login di sini',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
+                return RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'Sudah punya akun? ',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: responsive.isLandscape
+                              ? (isTablet ? 10.sp : 8.sp)
+                              : (isTablet ? 14.sp : 16.sp),
+                        ),
+                      ),
+                      TextSpan(
+                        text: 'Login disini',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: responsive.isLandscape
+                              ? (isTablet ? 10.sp : 8.sp)
+                              : (isTablet ? 14.sp : 16.sp),
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            if (!isLoading) context.go('/login');
+                          },
+                      ),
+                    ],
                   ),
                 );
               },

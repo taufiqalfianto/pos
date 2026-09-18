@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/helper/toast_helper.dart';
 import 'package:pos/core/helper/currency_helper.dart';
@@ -37,96 +38,113 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final isTablet = ResponsiveLayout.of(context).isTablet;
     final useCompactFab = isLandscape && !isTablet;
 
-    return Scaffold(
-      appBar: AppAppBar(title: const Text('Dashboard')),
-      body: Column(
-        children: [
-          _buildHeaderSection(),
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                // Ukuran kartu (lebar & tinggi) dihitung dari area grid yang
-                // tersisa supaya proporsional di tablet portrait/lanskap.
-                final gridPadding = EdgeInsets.symmetric(
-                  horizontal: 20.w,
-                  vertical: 10.h,
-                );
-                final grid = ResponsiveLayout.productGridMetrics(
-                  constraints.biggest,
-                  padding: gridPadding,
-                  spacing: 16.w,
-                );
-                return BlocBuilder<ProductCubit, ProductState>(
-                  builder: (context, state) {
-                    if (state is ProductLoading) {
-                      return ProductGridShimmer(
-                        crossAxisCount: grid.columns,
-                        childAspectRatio: grid.aspectRatio,
-                        padding: gridPadding,
-                      );
-                    }
-                    if (state is ProductLoaded) {
-                      if (state.products.isEmpty) {
-                        return Center(
-                          child: _buildEmptyState(
-                            _searchController.text.isNotEmpty,
+    return BlocListener<ProductCubit, ProductState>(
+      listener: (context, state) {
+        if (state is ProductSyncSuccess) {
+          ToastHelper.showSuccess(
+            context,
+            'Backup berhasil pada ${_formatSyncDate(state.lastSyncAt)}',
+          );
+        }
+        if (state is ProductSyncError) {
+          ToastHelper.showError(context, state.message);
+        }
+      },
+      child: Scaffold(
+        appBar: AppAppBar(title: const Text('Dashboard')),
+        body: Column(
+          children: [
+            _buildHeaderSection(),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // Ukuran kartu (lebar & tinggi) dihitung dari area grid yang
+                  // tersisa supaya proporsional di tablet portrait/lanskap.
+                  final gridPadding = EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 10.h,
+                  );
+                  final grid = ResponsiveLayout.productGridMetrics(
+                    constraints.biggest,
+                    padding: gridPadding,
+                    spacing: 16.w,
+                  );
+                  return BlocBuilder<ProductCubit, ProductState>(
+                    builder: (context, state) {
+                      if (state is ProductLoading) {
+                        return ProductGridShimmer(
+                          crossAxisCount: grid.columns,
+                          childAspectRatio: grid.aspectRatio,
+                          padding: gridPadding,
+                        );
+                      }
+                      final products = _productsFromState(state);
+                      if (products != null) {
+                        if (products.isEmpty) {
+                          return Center(
+                            child: _buildEmptyState(
+                              _searchController.text.isNotEmpty,
+                            ),
+                          );
+                        }
+
+                        return RefreshIndicator(
+                          onRefresh: () async {
+                            await context.read<ProductCubit>().loadProducts();
+                          },
+                          color: AppColors.primary,
+                          child: ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: gridPadding,
+                            children: [
+                              for (final entry in groupProductsByCategory(
+                                products,
+                              ).entries)
+                                _buildCategorySection(
+                                  entry.key,
+                                  entry.value,
+                                  grid,
+                                ),
+                            ],
                           ),
                         );
                       }
-
-                      return RefreshIndicator(
-                        onRefresh: () async {
-                          await context.read<ProductCubit>().loadProducts();
-                        },
-                        color: AppColors.primary,
-                        child: ListView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: gridPadding,
-                          children: [
-                            for (final entry
-                                in groupProductsByCategory(
-                                  state.products,
-                                ).entries)
-                              _buildCategorySection(entry.key, entry.value, grid),
-                          ],
-                        ),
-                      );
-                    }
-                    if (state is ProductError) {
-                      return Center(child: Text(state.message));
-                    }
-                    return const SizedBox();
-                  },
-                );
-              },
+                      if (state is ProductError) {
+                        return Center(child: Text(state.message));
+                      }
+                      return const SizedBox();
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
+        floatingActionButton: useCompactFab
+            ? FloatingActionButton(
+                onPressed: () => context.push('/add'),
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.r),
+                ),
+                child: const Icon(Icons.add_rounded),
+              )
+            : FloatingActionButton.extended(
+                onPressed: () => context.push('/add'),
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                label: const Text(
+                  'Tambah Produk',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                icon: const Icon(Icons.add_rounded),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.r),
+                ),
+              ),
       ),
-      floatingActionButton: useCompactFab
-          ? FloatingActionButton(
-              onPressed: () => context.push('/add'),
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20.r),
-              ),
-              child: const Icon(Icons.add_rounded),
-            )
-          : FloatingActionButton.extended(
-              onPressed: () => context.push('/add'),
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              label: const Text(
-                'Tambah Produk',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              icon: const Icon(Icons.add_rounded),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20.r),
-              ),
-            ),
     );
   }
 
@@ -168,7 +186,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   : 16.sp,
             ),
           ),
-          SizedBox(height: isLandscape || isTablet ? 12.h : 20.h),
+          SizedBox(height: isLandscape || isTablet ? 10.h : 14.h),
+          _buildSyncInfoSection(),
+          SizedBox(height: isLandscape || isTablet ? 10.h : 14.h),
           TextField(
             controller: _searchController,
             onChanged: (query) =>
@@ -192,6 +212,131 @@ class _ProductListScreenState extends State<ProductListScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildSyncInfoSection() {
+    return BlocBuilder<ProductCubit, ProductState>(
+      builder: (context, state) {
+        final isSyncing = state is ProductSyncLoading;
+        final lastSyncAt = _lastSyncAtFromState(state);
+        final isLandscape = context.isLandscape;
+        final isTablet = ResponsiveLayout.of(context).isTablet;
+
+        return Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: isLandscape && !isTablet ? 10.w : 14.w,
+            vertical: isLandscape && !isTablet ? 8.h : 10.h,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18.r),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
+            boxShadow: AppStyles.premiumShadow,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: isLandscape && !isTablet ? 30.r : 36.r,
+                height: isLandscape && !isTablet ? 30.r : 36.r,
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Icon(
+                  Icons.sync_rounded,
+                  color: AppColors.primary,
+                  size: isLandscape && !isTablet ? 18.r : 20.r,
+                ),
+              ),
+              SizedBox(width: 10.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Backup Data',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: isLandscape && !isTablet ? 11.sp : 13.sp,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      lastSyncAt == null
+                          ? 'Belum pernah backup'
+                          : 'Backup terakhir: ${_formatSyncDate(lastSyncAt)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: isLandscape && !isTablet ? 9.sp : 11.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: 8.w),
+              FilledButton.icon(
+                onPressed: isSyncing
+                    ? null
+                    : () => context.read<ProductCubit>().syncData(),
+                icon: isSyncing
+                    ? SizedBox(
+                        width: 16.r,
+                        height: 16.r,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.w,
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                    : Icon(Icons.cloud_sync_rounded, size: 18.r),
+                label: Text(isSyncing ? 'Membackup' : 'Backup'),
+                style: FilledButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  textStyle: TextStyle(
+                    fontSize: isLandscape && !isTablet ? 10.sp : 12.sp,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  minimumSize: Size(0, isLandscape && !isTablet ? 34.h : 38.h),
+                  padding: EdgeInsets.symmetric(horizontal: 12.w),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14.r),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  List<ProductModel>? _productsFromState(ProductState state) {
+    return switch (state) {
+      ProductLoaded(:final products) => products,
+      ProductSyncLoading(:final products) => products,
+      _ => null,
+    };
+  }
+
+  DateTime? _lastSyncAtFromState(ProductState state) {
+    return switch (state) {
+      ProductLoaded(:final lastSyncAt) => lastSyncAt,
+      ProductSyncLoading(:final lastSyncAt) => lastSyncAt,
+      ProductSyncSuccess(:final lastSyncAt) => lastSyncAt,
+      ProductSyncError(:final lastSyncAt) => lastSyncAt,
+      _ => null,
+    };
+  }
+
+  String _formatSyncDate(DateTime dateTime) {
+    return DateFormat('dd MMM yyyy, HH:mm', 'id').format(dateTime.toLocal());
   }
 
   /// Satu kelompok kategori: header + grid produk kelompok tersebut.
@@ -225,10 +370,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               ),
               SizedBox(width: 8.w),
               Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 10.w,
-                  vertical: 2.h,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 2.h),
                 decoration: BoxDecoration(
                   color: AppColors.primarySoft,
                   borderRadius: BorderRadius.circular(AppStyles.radiusInner.r),
@@ -368,7 +510,7 @@ class _PremiumProductCard extends StatelessWidget {
                             },
                           )
                         : Container(
-                            color: AppColors.primary.withValues(alpha: 0.05),
+                            color: AppColors.error.withValues(alpha: 0.05),
                             child: Icon(
                               Icons.shopping_bag_rounded,
                               size: 40.r,
@@ -376,11 +518,11 @@ class _PremiumProductCard extends StatelessWidget {
                             ),
                           ),
                   ),
-                  Positioned(
-                    top: 8.h,
-                    right: 8.w,
-                    child: _buildPopOptions(context),
-                  ),
+                  // Positioned(
+                  //   top: 8.h,
+                  //   right: 8.w,
+                  //   child: _buildPopOptions(context),
+                  // ),
                   if (product.stock < 5)
                     Positioned(
                       bottom: 8.h,
@@ -400,7 +542,32 @@ class _PremiumProductCard extends StatelessWidget {
                           'Stok Tipis',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 10.sp,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (product.stock <= 0)
+                    Positioned(
+                      bottom: 8.h,
+                      left: 8.w,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 4.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.error.withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(
+                            AppStyles.radiusInner.r,
+                          ),
+                        ),
+                        child: Text(
+                          'Stok Habis',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12.sp,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -451,8 +618,12 @@ class _PremiumProductCard extends StatelessWidget {
                         'Stok: ${product.stock}',
                         style: TextStyle(
                           fontSize: 12.sp,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textSecondary,
+                          fontWeight: product.stock <= 0
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: product.stock <= 0
+                              ? AppColors.error
+                              : AppColors.textPrimary,
                         ),
                       ),
                     ],

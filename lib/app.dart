@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pos/core/helper/app_logger.dart';
 import 'package:pos/core/routing/app_router.dart';
 import 'package:pos/core/theme/app_theme.dart';
 import 'package:pos/core/util/responsive_layout.dart';
@@ -32,21 +33,37 @@ class _PosAppState extends State<PosApp> {
   @override
   void initState() {
     super.initState();
+    AppLogger.info('PosApp initState', tag: 'AppLifecycle');
     _router = AppRouter.createRouter(widget.authCubit);
     widget.authCubit.checkAuth();
     _checkForUpdates();
   }
 
   Future<void> _checkForUpdates() async {
-    final status = await _shorebirdCodePush.checkForUpdate();
+    try {
+      AppLogger.info('Cek update Shorebird dimulai', tag: 'Update');
+      final status = await _shorebirdCodePush.checkForUpdate();
+      AppLogger.info(
+        'Cek update Shorebird selesai: status=$status',
+        tag: 'Update',
+      );
 
-    if (status == UpdateStatus.outdated) {
-      _showUpdateDialog();
-      // Restart.restartApp();
+      if (status == UpdateStatus.outdated) {
+        _showUpdateDialog();
+        // Restart.restartApp();
+      }
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Cek update Shorebird gagal',
+        tag: 'Update',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
   void _showUpdateDialog() {
+    AppLogger.info('Menampilkan dialog update tersedia', tag: 'Update');
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -58,6 +75,10 @@ class _PosAppState extends State<PosApp> {
         actions: [
           TextButton(
             onPressed: () {
+              AppLogger.info(
+                'Restart aplikasi dari dialog update',
+                tag: 'Update',
+              );
               Restart.restartApp();
             },
             child: const Text("Restart Sekarang"),

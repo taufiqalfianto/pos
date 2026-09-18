@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:pos/core/helper/app_logger.dart';
+import 'package:pos/core/helper/backup_helper.dart';
 import 'package:pos/features/product/data/model/product_model.dart';
 
 import '../repository/product_repository.dart';
@@ -30,8 +31,9 @@ class ProductCubit extends Cubit<ProductState> {
     emit(ProductLoading());
     try {
       final products = await _repository.getProducts();
+      final lastSyncAt = await _repository.getLastSyncAt();
       _allProducts = products;
-      emit(ProductLoaded(products));
+      emit(ProductLoaded(products, lastSyncAt: lastSyncAt));
     } catch (e, stackTrace) {
       AppLogger.error('Gagal memuat produk', error: e, stackTrace: stackTrace);
       emit(ProductError("Gagal memuat produk: $e"));
@@ -43,7 +45,7 @@ class ProductCubit extends Cubit<ProductState> {
     _searchDebounce = Timer(const Duration(milliseconds: 150), () {
       if (isClosed) return;
       if (query.trim().isEmpty) {
-        emit(ProductLoaded(_allProducts));
+        emit(ProductLoaded(_allProducts, lastSyncAt: _lastSyncAtFromState()));
         return;
       }
 
@@ -54,7 +56,7 @@ class ProductCubit extends Cubit<ProductState> {
         return name.contains(searchTerm) || desc.contains(searchTerm);
       }).toList();
 
-      emit(ProductLoaded(filtered));
+      emit(ProductLoaded(filtered, lastSyncAt: _lastSyncAtFromState()));
     });
   }
 
@@ -101,17 +103,52 @@ class ProductCubit extends Cubit<ProductState> {
   }
 
   Future<void> syncData() async {
-    emit(ProductSyncLoading());
+    emit(
+      ProductSyncLoading(
+        products: _allProducts,
+        lastSyncAt: _lastSyncAtFromState(),
+      ),
+    );
     try {
-      await _repository.syncPendingData();
+      final lastSyncAt = await _repository.createBackupSync();
       if (isClosed) return;
-      emit(ProductSyncSuccess());
+      emit(ProductSyncSuccess(lastSyncAt));
       await loadProducts();
     } catch (e, stackTrace) {
-      AppLogger.error('Sync data gagal', error: e, stackTrace: stackTrace);
+      if (e is BackupCancelledException) {
+        AppLogger.info(
+          'Backup dashboard dibatalkan user',
+          tag: 'DashboardBackup',
+        );
+        if (!isClosed) {
+          emit(ProductLoaded(_allProducts, lastSyncAt: _lastSyncAtFromState()));
+        }
+        return;
+      }
+      AppLogger.error(
+        'Backup data dashboard gagal',
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (isClosed) return;
-      emit(ProductSyncError('Gagal sinkronisasi data: $e'));
+      emit(
+        ProductSyncError(
+          'Gagal membuat backup data: $e',
+          lastSyncAt: _lastSyncAtFromState(),
+        ),
+      );
     }
+  }
+
+  DateTime? _lastSyncAtFromState() {
+    final currentState = state;
+    return switch (currentState) {
+      ProductLoaded(:final lastSyncAt) => lastSyncAt,
+      ProductSyncLoading(:final lastSyncAt) => lastSyncAt,
+      ProductSyncSuccess(:final lastSyncAt) => lastSyncAt,
+      ProductSyncError(:final lastSyncAt) => lastSyncAt,
+      _ => null,
+    };
   }
 
   @override

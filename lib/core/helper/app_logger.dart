@@ -1,4 +1,4 @@
-import 'dart:developer' as developer;
+import 'package:logger/logger.dart';
 
 /// Centralized logging service.
 /// Use this instead of `print()` for consistent, filterable logs.
@@ -6,21 +6,27 @@ class AppLogger {
   AppLogger._();
 
   static const String _tag = 'POS';
+  static final Logger _logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 0,
+      errorMethodCount: 8,
+      lineLength: 100,
+      colors: false,
+      printEmojis: false,
+      dateTimeFormat: DateTimeFormat.dateAndTime,
+    ),
+  );
 
   static void debug(String message, {String? tag}) {
-    developer.log(
-      message,
-      name: tag ?? _tag,
-      level: 500, // Level below info
-    );
+    _logger.d(_messageWithTag(message, tag));
   }
 
   static void info(String message, {String? tag}) {
-    developer.log(message, name: tag ?? _tag, level: 800);
+    _logger.i(_messageWithTag(message, tag));
   }
 
   static void warning(String message, {String? tag, Object? error}) {
-    developer.log(message, name: tag ?? _tag, level: 900, error: error);
+    _logger.w(_messageWithTag(message, tag), error: error);
   }
 
   static void error(
@@ -29,12 +35,14 @@ class AppLogger {
     Object? error,
     StackTrace? stackTrace,
   }) {
-    developer.log(
-      message,
-      name: tag ?? _tag,
-      level: 1000,
+    _logger.e(
+      _messageWithTag(message, tag),
       error: error,
       stackTrace: stackTrace,
     );
+  }
+
+  static String _messageWithTag(String message, String? tag) {
+    return '[${tag ?? _tag}] $message';
   }
 }

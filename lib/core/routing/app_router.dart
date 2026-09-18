@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pos/core/helper/app_logger.dart';
 import 'package:pos/features/auth/cubit/auth_cubit.dart';
 import 'package:pos/features/auth/cubit/auth_state.dart';
 import 'package:pos/features/auth/screen/login_screen.dart';
 import 'package:pos/features/auth/screen/register_screen.dart';
 import 'package:pos/features/auth/screen/change_password_screen.dart';
+import 'package:pos/features/auth/screen/backup_restore_screen.dart';
 import 'package:pos/features/auth/screen/edit_profile_screen.dart';
 import 'package:pos/features/auth/screen/local_data_warning_screen.dart';
 import 'package:pos/features/auth/screen/splash_screen.dart';
@@ -27,6 +29,7 @@ class AppRouter {
     return GoRouter(
       initialLocation: '/splash',
       refreshListenable: GoRouterRefreshStream(authCubit.stream),
+      observers: [RouteLoggerObserver()],
       redirect: (context, state) {
         final authState = authCubit.state;
         final bool isPublicRoute =
@@ -117,6 +120,10 @@ class AppRouter {
           builder: (context, state) => const ChangePasswordScreen(),
         ),
         GoRoute(
+          path: '/backup-restore',
+          builder: (context, state) => const BackupRestoreScreen(),
+        ),
+        GoRoute(
           path: '/edit-product',
           builder: (context, state) {
             final product = state.extra as ProductModel;
@@ -154,6 +161,42 @@ class AppRouter {
         ),
       ],
     );
+  }
+}
+
+class RouteLoggerObserver extends NavigatorObserver {
+  static const _logTag = 'Navigation';
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    AppLogger.info(
+      'Route push: route=${_routeName(route)}, previous=${_routeName(previousRoute)}',
+      tag: _logTag,
+    );
+    super.didPush(route, previousRoute);
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    AppLogger.info(
+      'Route pop: route=${_routeName(route)}, previous=${_routeName(previousRoute)}',
+      tag: _logTag,
+    );
+    super.didPop(route, previousRoute);
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    AppLogger.info(
+      'Route replace: new=${_routeName(newRoute)}, old=${_routeName(oldRoute)}',
+      tag: _logTag,
+    );
+    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+  }
+
+  String _routeName(Route<dynamic>? route) {
+    if (route == null) return '-';
+    return route.settings.name ?? route.settings.toString();
   }
 }
 

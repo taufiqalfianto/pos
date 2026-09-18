@@ -1,10 +1,16 @@
+import 'package:pos/core/helper/app_logger.dart';
 import 'package:pos/core/helper/database_helper.dart';
 import '../data/model/order_model.dart';
 
 class OrderRepository {
+  static const _logTag = 'OrderRepository';
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   Future<void> saveOrder(OrderModel order) async {
+    AppLogger.info(
+      'Simpan order dimulai: order_id=${order.id}, item_count=${order.items.length}, total=${order.totalPrice}, payment=${order.paymentMethod}',
+      tag: _logTag,
+    );
     final db = await _dbHelper.database;
 
     await db.transaction((txn) async {
@@ -23,6 +29,10 @@ class OrderRepository {
         );
 
         if (productResult.isEmpty) {
+          AppLogger.warning(
+            'Simpan order gagal: product tidak ditemukan, order_id=${order.id}, product_id=${item.productId}',
+            tag: _logTag,
+          );
           throw Exception('Produk "${item.productName}" tidak ditemukan');
         }
 
@@ -30,6 +40,10 @@ class OrderRepository {
         final int newStock = currentStock - item.quantity;
 
         if (newStock < 0) {
+          AppLogger.warning(
+            'Simpan order gagal: stok kurang, order_id=${order.id}, product_id=${item.productId}, requested=${item.quantity}, stock=$currentStock',
+            tag: _logTag,
+          );
           throw Exception('Stok untuk "${item.productName}" tidak mencukupi');
         }
 
@@ -42,6 +56,7 @@ class OrderRepository {
         );
       }
     });
+    AppLogger.info('Simpan order berhasil: order_id=${order.id}', tag: _logTag);
   }
 
   Future<List<OrderModel>> getOrders() async {
@@ -51,7 +66,10 @@ class OrderRepository {
       orderBy: 'created_at DESC',
     );
 
-    if (ordersMap.isEmpty) return [];
+    if (ordersMap.isEmpty) {
+      AppLogger.debug('Riwayat order kosong', tag: _logTag);
+      return [];
+    }
 
     final List<Map<String, dynamic>> allItemsMap = await db.query(
       'order_items',
@@ -66,11 +84,16 @@ class OrderRepository {
       }
     }
 
-    return ordersMap.map((map) {
+    final orders = ordersMap.map((map) {
       final orderId = map['id'] as String;
       final items = itemsByOrderId[orderId] ?? [];
       return OrderModel.fromMap(map, items);
     }).toList();
+    AppLogger.debug(
+      'Riwayat order dimuat: count=${orders.length}',
+      tag: _logTag,
+    );
+    return orders;
   }
 
   // Sales Report Aggregation
@@ -80,6 +103,10 @@ class OrderRepository {
     int? year,
     String period = 'daily',
   }) async {
+    AppLogger.info(
+      'Load sales report dimulai: period=$period, day=$day, month=$month, year=$year',
+      tag: _logTag,
+    );
     final db = await _dbHelper.database;
 
     String whereClause = '';
@@ -141,7 +168,7 @@ class OrderRepository {
       ORDER BY revenue DESC
     ''', whereArgs);
 
-    return {
+    final report = {
       'total_orders': totalSalesCount,
       'total_revenue': totalRevenue,
       'total_cost': totalCost,
@@ -149,5 +176,10 @@ class OrderRepository {
       'category_sales': categorySalesResult,
       'payment_sales': paymentSalesResult,
     };
+    AppLogger.info(
+      'Load sales report berhasil: period=$period, total_orders=$totalSalesCount, revenue=$totalRevenue, profit=$totalProfit',
+      tag: _logTag,
+    );
+    return report;
   }
 }

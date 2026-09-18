@@ -98,7 +98,7 @@ class ModernDialog extends StatelessWidget {
                       onPressed: () => Navigator.pop(context),
                       style: TextButton.styleFrom(
                         padding: EdgeInsets.symmetric(
-                          vertical: isLandscape || isTablet ? 14.h : 16.h,
+                          vertical: isLandscape || isTablet ? 16.h : 14.h,
                         ),
                       ),
                       child: Text(
@@ -120,7 +120,7 @@ class ModernDialog extends StatelessWidget {
                       style: FilledButton.styleFrom(
                         backgroundColor: confirmColor,
                         padding: EdgeInsets.symmetric(
-                          vertical: isLandscape || isTablet ? 14.h : 16.h,
+                          vertical: isLandscape || isTablet ? 16.h : 14.h,
                         ),
                       ),
                       child: Text(

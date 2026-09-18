@@ -14,6 +14,13 @@
       "deviceId": "emulator-5554",
       "flutterMode": "profile"
     },
+     {
+      "name": "POS - Android Emulator 1 (Release)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "emulator-5554",
+      "flutterMode": "release"
+    },
     {
       "name": "POS - Android Emulator 2 (Tablet)",
       "request": "launch",

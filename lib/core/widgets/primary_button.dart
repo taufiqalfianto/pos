@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pos/core/theme/app_theme.dart';
+import 'package:pos/core/util/app_style.dart';
 import 'package:pos/core/util/responsive_layout.dart';
 import 'package:pos/core/widgets/loading_button_child.dart';
 
@@ -45,7 +46,9 @@ class PrimaryButton extends StatelessWidget {
           isLoading: isLoading,
           label: label,
           icon: icon,
-          textStyle: AppTheme.buttonTextStyle(Theme.of(context).textTheme),
+          textStyle: AppTheme.buttonTextStyle(
+            Theme.of(context).textTheme,
+          ).copyWith(color: AppColors.background),
         ),
       ),
     );

@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import 'app_logger.dart';
 
 class FileHelper {
+  static const _logTag = 'FileHelper';
   static String? _basePath;
 
   /// Initializes the base path for storage.
@@ -12,12 +13,21 @@ class FileHelper {
   static Future<void> initialize() async {
     final directory = await getApplicationDocumentsDirectory();
     _basePath = directory.path;
+    AppLogger.info(
+      'FileHelper initialized: base_path=$_basePath',
+      tag: _logTag,
+    );
   }
 
   static Future<String> saveImagePermanently(String temporaryPath) async {
     try {
+      AppLogger.info('Simpan gambar permanen dimulai', tag: _logTag);
       final File tempFile = File(temporaryPath);
       if (!await tempFile.exists()) {
+        AppLogger.warning(
+          'File gambar sementara tidak ditemukan, memakai path asli',
+          tag: _logTag,
+        );
         return temporaryPath;
       }
 
@@ -32,9 +42,13 @@ class FileHelper {
       await tempFile.copy(permanentPath);
 
       // Return ONLY the filename for relative storage
+      AppLogger.info(
+        'Simpan gambar permanen berhasil: file_name=$fileName',
+        tag: _logTag,
+      );
       return fileName;
     } catch (e) {
-      AppLogger.error('Error saving image permanently', error: e);
+      AppLogger.error('Error saving image permanently', tag: _logTag, error: e);
       return temporaryPath;
     }
   }

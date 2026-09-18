@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import '../../../core/helper/app_logger.dart';
 import '../repository/order_repository.dart';
 
 enum SalesReportPeriod { daily, monthly }
@@ -58,11 +59,13 @@ class SalesReportError extends SalesReportState {
 
 // Cubit
 class SalesReportCubit extends Cubit<SalesReportState> {
+  static const _logTag = 'SalesReportCubit';
   final OrderRepository _repository;
 
   SalesReportCubit(this._repository) : super(SalesReportInitial());
 
   Future<void> refreshCurrentReport() {
+    AppLogger.info('Refresh current sales report dimulai', tag: _logTag);
     final currentState = state;
     if (currentState is SalesReportLoaded) {
       return loadSalesReport(
@@ -78,6 +81,10 @@ class SalesReportCubit extends Cubit<SalesReportState> {
     DateTime? date,
   }) async {
     final targetDate = date ?? DateTime.now();
+    AppLogger.info(
+      'Load sales report action dimulai: period=$period, date=${targetDate.toIso8601String()}',
+      tag: _logTag,
+    );
     emit(SalesReportLoading());
     try {
       final report = await _repository.getSalesReport(
@@ -102,7 +109,17 @@ class SalesReportCubit extends Cubit<SalesReportState> {
           selectedDate: targetDate,
         ),
       );
-    } catch (e) {
+      AppLogger.info(
+        'Load sales report action berhasil: period=$period, total_orders=${report['total_orders']}',
+        tag: _logTag,
+      );
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Load sales report action gagal',
+        tag: _logTag,
+        error: e,
+        stackTrace: stackTrace,
+      );
       emit(SalesReportError('Gagal memuat laporan penjualan: $e'));
     }
   }

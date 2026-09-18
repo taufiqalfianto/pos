@@ -2,11 +2,13 @@ import 'dart:async';
 import 'package:sqflite/sqflite.dart';
 
 import '../../../core/helper/app_logger.dart';
+import '../../../core/helper/backup_helper.dart';
 import '../../../core/helper/database_helper.dart';
 import '../data/model/product_model.dart';
 import '../data/model/stock_report_model.dart';
 
 class ProductRepository {
+  static const _logTag = 'ProductRepository';
   final DatabaseHelper _dbHelper;
 
   ProductRepository() : _dbHelper = DatabaseHelper.instance;
@@ -16,15 +18,21 @@ class ProductRepository {
   Stream<void> get productUpdates => _productUpdateController.stream;
 
   void notifyListeners() {
+    AppLogger.debug('Notify product listeners', tag: _logTag);
     _productUpdateController.add(null);
   }
 
   void dispose() {
+    AppLogger.debug('Dispose product repository stream', tag: _logTag);
     _productUpdateController.close();
   }
 
   // 7. Save Stock Report
   Future<void> saveStockReport(StockReportModel report) async {
+    AppLogger.info(
+      'Simpan laporan stok dimulai: report_id=${report.id}, product_id=${report.productId}',
+      tag: _logTag,
+    );
     final db = await _dbHelper.database;
     await db.insert(
       'stock_reports',
@@ -34,6 +42,10 @@ class ProductRepository {
 
     // After saving report, update the product's actual stock
     await updateStock(report.productId, report.manualStock);
+    AppLogger.info(
+      'Simpan laporan stok berhasil: report_id=${report.id}, adjustment=${report.adjustment}',
+      tag: _logTag,
+    );
     notifyListeners();
   }
 
@@ -46,11 +58,19 @@ class ProductRepository {
       whereArgs: [productId],
       orderBy: 'created_at DESC',
     );
+    AppLogger.debug(
+      'Riwayat stok dimuat: product_id=$productId, count=${result.length}',
+      tag: _logTag,
+    );
     return result.map((json) => StockReportModel.fromMap(json)).toList();
   }
 
   // 9. Update Stock Directly (Manual Reconciliation)
   Future<void> updateStock(String id, int quantity) async {
+    AppLogger.info(
+      'Update stok dimulai: product_id=$id, quantity=$quantity',
+      tag: _logTag,
+    );
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> result = await db.query(
       'products',
@@ -79,7 +99,16 @@ class ProductRepository {
       } catch (e) {
         AppLogger.error('Manual stock update sync gagal', error: e);
       }
+      AppLogger.info(
+        'Update stok berhasil: product_id=$id, quantity=$quantity',
+        tag: _logTag,
+      );
       notifyListeners();
+    } else {
+      AppLogger.warning(
+        'Update stok dilewati: product tidak ditemukan, product_id=$id',
+        tag: _logTag,
+      );
     }
   }
 
@@ -92,6 +121,7 @@ class ProductRepository {
       LEFT JOIN categories c ON p.category_id = c.id
       ORDER BY p.name ASC
     ''');
+    AppLogger.debug('Produk dimuat: count=${result.length}', tag: _logTag);
     return result.map((json) {
       return ProductModel.fromMap(
         json,
@@ -102,6 +132,10 @@ class ProductRepository {
 
   // 2. Add Product (Offline First + Auto Sync)
   Future<void> addProduct(ProductModel product) async {
+    AppLogger.info(
+      'Tambah produk dimulai: product_id=${product.id}',
+      tag: _logTag,
+    );
     final db = await _dbHelper.database;
 
     // Step A: Simpan ke Local DB (status not synced)
@@ -128,11 +162,16 @@ class ProductRepository {
       // Jika gagal (offline/error), biarkan is_synced = 0
       AppLogger.error('Sync gagal, data tersimpan lokal', error: e);
     }
+    AppLogger.info(
+      'Tambah produk berhasil: product_id=${product.id}',
+      tag: _logTag,
+    );
     notifyListeners();
   }
 
   // 3. Manual Sync (Mengirim semua data yang pending)
   Future<void> syncPendingData() async {
+    AppLogger.info('Sync pending produk dimulai', tag: _logTag);
     final db = await _dbHelper.database;
 
     // Ambil data yang belum sync
@@ -141,8 +180,10 @@ class ProductRepository {
       where: 'is_synced = ?',
       whereArgs: [0],
     );
-
-    if (pendingData.isEmpty) return;
+    AppLogger.info(
+      'Produk pending sync ditemukan: count=${pendingData.length}',
+      tag: _logTag,
+    );
 
     for (var map in pendingData) {
       final product = ProductModel.fromMap(map);
@@ -157,15 +198,36 @@ class ProductRepository {
           where: 'id = ?',
           whereArgs: [product.id],
         );
+        AppLogger.debug(
+          'Produk pending berhasil disync: product_id=${product.id}',
+          tag: _logTag,
+        );
       } catch (e) {
         AppLogger.error('Gagal sync item ${product.name}', error: e);
       }
     }
+    AppLogger.info('Sync pending produk selesai', tag: _logTag);
     notifyListeners();
   }
 
+  Future<DateTime> createBackupSync() async {
+    AppLogger.info('Backup dashboard dimulai', tag: 'DashboardBackup');
+    final result = await BackupHelper.exportBackup();
+    AppLogger.info(
+      'Backup dashboard selesai: created_at=${result.createdAt.toIso8601String()}, image_count=${result.imageCount}',
+      tag: 'DashboardBackup',
+    );
+    return result.createdAt;
+  }
+
+  Future<DateTime?> getLastSyncAt() => BackupHelper.getLastBackupAt();
+
   // 4. Update Product
   Future<void> updateProduct(ProductModel product) async {
+    AppLogger.info(
+      'Update produk dimulai: product_id=${product.id}',
+      tag: _logTag,
+    );
     final db = await _dbHelper.database;
     await db.update(
       'products',
@@ -186,11 +248,16 @@ class ProductRepository {
     } catch (e) {
       AppLogger.error('Update sync gagal', error: e);
     }
+    AppLogger.info(
+      'Update produk berhasil: product_id=${product.id}',
+      tag: _logTag,
+    );
     notifyListeners();
   }
 
   // 5. Delete Product
   Future<void> deleteProduct(String id) async {
+    AppLogger.info('Hapus produk dimulai: product_id=$id', tag: _logTag);
     final db = await _dbHelper.database;
     await db.delete('products', where: 'id = ?', whereArgs: [id]);
 
@@ -200,11 +267,16 @@ class ProductRepository {
     } catch (e) {
       AppLogger.error('Delete sync gagal', error: e);
     }
+    AppLogger.info('Hapus produk berhasil: product_id=$id', tag: _logTag);
     notifyListeners();
   }
 
   // 6. Reduce Stock
   Future<void> reduceStock(String id, int quantity) async {
+    AppLogger.info(
+      'Kurangi stok dimulai: product_id=$id, quantity=$quantity',
+      tag: _logTag,
+    );
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> result = await db.query(
       'products',
@@ -217,6 +289,10 @@ class ProductRepository {
       final newStock = product.stock - quantity;
 
       if (newStock < 0) {
+        AppLogger.warning(
+          'Kurangi stok ditolak: product_id=$id, requested=$quantity, stock=${product.stock}',
+          tag: _logTag,
+        );
         throw Exception('Stok untuk "${product.name}" tidak mencukupi');
       }
 
@@ -239,7 +315,16 @@ class ProductRepository {
       } catch (e) {
         AppLogger.error('Stock update sync gagal', error: e);
       }
+      AppLogger.info(
+        'Kurangi stok berhasil: product_id=$id, quantity=$quantity, new_stock=$newStock',
+        tag: _logTag,
+      );
       notifyListeners();
+    } else {
+      AppLogger.warning(
+        'Kurangi stok dilewati: product tidak ditemukan, product_id=$id',
+        tag: _logTag,
+      );
     }
   }
 
@@ -253,8 +338,10 @@ class ProductRepository {
     );
 
     if (result.isNotEmpty) {
+      AppLogger.debug('Produk ditemukan: product_id=$id', tag: _logTag);
       return ProductModel.fromMap(result.first);
     }
+    AppLogger.warning('Produk tidak ditemukan: product_id=$id', tag: _logTag);
     return null;
   }
 }
